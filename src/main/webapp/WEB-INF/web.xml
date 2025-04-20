@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="3.1">
+    <servlet>
+        <servlet-name>FetchEmployeeServlet</servlet-name>
+        <servlet-class>com.example.FetchEmployeeServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FetchEmployeeServlet</servlet-name>
+        <url-pattern>/FetchEmployeeServlet</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CalculatePensionServlet</servlet-name>
+        <servlet-class>com.example.CalculatePensionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CalculatePensionServlet</servlet-name>
+        <url-pattern>/CalculatePensionServlet</url-pattern>
+    </servlet-mapping>
+</web-app>
