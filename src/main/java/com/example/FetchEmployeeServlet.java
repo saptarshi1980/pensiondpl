@@ -119,27 +119,23 @@
 	        double pf = currentPf;
 
 	        LocalDate yearPointer = LocalDate.of(2025, 1, 1);  // Start from 2025
-	        LocalDate jan2029 = LocalDate.of(2029, 1, 1);
 
-	        while (yearPointer.isBefore(jan2029) && yearPointer.isBefore(retirementDate)) {
-	            if (yearPointer.getYear() == 2025) {
+	        while (yearPointer.getYear() <= retirementDate.getYear()) {
+	            int year = yearPointer.getYear();
+
+	            if (year == 2025) {
 	                yearlyPfPays.add(pf);  // No hike in 2025
+	            } else if (year >= 2026 && year <= 2029) {
+	                pf *= 1.08;  // 8% hike from 2026 to 2029
+	                yearlyPfPays.add(pf);
+	            } else if (year == 2030) {
+	                pf *= 1.5;  // 1.5x hike in 2030
+	                yearlyPfPays.add(pf);
 	            } else {
-	                pf *= 1.08;  // 8% hike from 2026 to 2028
+	                pf *= 1.04;  // 4% hike from 2031 onwards
 	                yearlyPfPays.add(pf);
 	            }
-	            yearPointer = yearPointer.plusYears(1);
-	        }
 
-	        if (!yearPointer.isAfter(jan2029) && yearPointer.isBefore(retirementDate)) {
-	            pf *= 1.5;  // 50% hike in 2029
-	            yearlyPfPays.add(pf);
-	            yearPointer = yearPointer.plusYears(1);
-	        }
-
-	        while (yearPointer.isBefore(retirementDate)) {
-	            pf *= 1.04;  // 4% hike from 2030 onwards
-	            yearlyPfPays.add(pf);
 	            yearPointer = yearPointer.plusYears(1);
 	        }
 
