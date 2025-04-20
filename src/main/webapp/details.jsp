@@ -87,7 +87,7 @@
             <div class="detail-value"><%= request.getAttribute("dob") %></div>
         </div>
         <div class="detail-row">
-            <div class="detail-label">Retirement Month-End:</div>
+            <div class="detail-label">58 years Month-End:</div>
             <div class="detail-value"><%= request.getAttribute("retirementMonthEnd") %></div>
         </div>
         <div class="detail-row">
@@ -171,8 +171,8 @@
         <p>We calculate the projected average PF pay for the last 5 years using the following assumptions:</p>
         <ul class="list-group list-group-flush mb-3">
             <li class="list-group-item">📌 <strong>2025</strong> – No hike (used as base year)</li>
-            <li class="list-group-item">📈 <strong>8% yearly hike</strong> from <strong>2026 to 2028</strong></li>
-            <li class="list-group-item">💥 <strong>1.5x hike</strong> on <strong>Jan 1, 2029</strong> (Pay Commission revision)</li>
+            <li class="list-group-item">📈 <strong>8% yearly hike</strong> from <strong>2026 to 2029</strong></li>
+            <li class="list-group-item">💥 <strong>1.5x hike</strong> on <strong>Jan 1, 2030</strong> (Assuming Pay Commission implementation)</li>
             <li class="list-group-item">🔄 <strong>4% yearly hike</strong> from <strong>2030 onward</strong> until the employee turns 58</li>
             <li class="list-group-item">🚫 Promotions and other benefits not considered</li>
         </ul>
