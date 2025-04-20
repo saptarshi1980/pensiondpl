@@ -72,7 +72,7 @@
 <body>
 <div class="employee-container">
     <h2 class="employee-header">Employee Details</h2>
-    
+
     <div class="employee-details">
         <div class="detail-row">
             <div class="detail-label">Employee ID:</div>
@@ -121,7 +121,7 @@
         <div class="input-title">
             If you think the above projection is incorrect, you can enter your own estimate of the average PF Pay for the last 5 years (up to age 58):
         </div>
-        
+
         <div class="input-group mb-3">
             <span class="input-group-text">₹</span>
             <input type="number" class="form-control" name="avgSalary" id="avgSalary" 
@@ -137,9 +137,9 @@
 
     <!-- Year-wise Projection Section -->
     <div class="mt-5">
-        <h4 class="text-primary mb-3">📅 Year-wise Projected PF Pay- Entirely Hypothetical</h4>
+        <h4 class="text-primary mb-3">📅 Year-wise Projected PF Pay - Entirely Hypothetical</h4>
         <%
-            Map<String, Double> projections = (Map<String, Double>) request.getAttribute("yearlyProjections");
+            Map<String, Integer> projections = (Map<String, Integer>) request.getAttribute("yearlyProjections");
             if (projections != null && !projections.isEmpty()) {
         %>
         <div class="table-responsive">
@@ -151,10 +151,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% for (Map.Entry<String, Double> entry : projections.entrySet()) { %>
+                    <% for (Map.Entry<String, Integer> entry : projections.entrySet()) { %>
                         <tr>
                             <td><%= entry.getKey() %></td>
-                            <td>₹ <%= String.format("%.2f", entry.getValue()) %></td>
+                            <td>₹ <%= entry.getValue() %></td>
                         </tr>
                     <% } %>
                 </tbody>
@@ -170,14 +170,14 @@
         <h5 class="text-dark mb-3">🧮 Formula for Projected Average PF Pay</h5>
         <p>We calculate the projected average PF pay for the last 5 years using the following assumptions:</p>
         <ul class="list-group list-group-flush mb-3">
-            <li class="list-group-item">📈 <strong>8% yearly hike</strong> until <strong>Jan 1, 2029</strong></li>
-            <li class="list-group-item">💥 <strong>1.5x hike</strong> on <strong>Jan 1, 2030</strong> (Pay Commission revision)</li>
-            <li class="list-group-item">🔄 <strong>4% yearly hike</strong> thereafter until the employee turns 58</li>
+            <li class="list-group-item">📌 <strong>2025</strong> – No hike (used as base year)</li>
+            <li class="list-group-item">📈 <strong>8% yearly hike</strong> from <strong>2026 to 2028</strong></li>
+            <li class="list-group-item">💥 <strong>1.5x hike</strong> on <strong>Jan 1, 2029</strong> (Pay Commission revision)</li>
+            <li class="list-group-item">🔄 <strong>4% yearly hike</strong> from <strong>2030 onward</strong> until the employee turns 58</li>
             <li class="list-group-item">🚫 Promotions and other benefits not considered</li>
         </ul>
-        <p class="mb-0">Then we take the average of the projected PF pays from the last 5 years.</p>
+        <p class="mb-0">Then we take the average of the projected PF pays from the last 5 years before retirement.</p>
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
