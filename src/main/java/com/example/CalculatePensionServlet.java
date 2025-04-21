@@ -17,7 +17,6 @@ public class CalculatePensionServlet extends HttpServlet {
         double serviceYears = Double.parseDouble(request.getParameter("serviceYears"));
         double highestSalaryTill2014 = Double.parseDouble(request.getParameter("highestSalaryTill2014"));
         String exitDateStr = request.getParameter("retirementMonthEnd");
-        System.out.println("$$$ Exit date str:"+exitDateStr);
         double avgSalary5Yr = Double.parseDouble(request.getParameter("avgSalary"));
 
         // Parse exit date
@@ -30,13 +29,12 @@ public class CalculatePensionServlet extends HttpServlet {
 
         // Set attributes for JSP
         request.setAttribute("empId", empId);
+        request.setAttribute("empName", empName);
         request.setAttribute("serviceYears", serviceYears);
         request.setAttribute("highestSalaryTill2014", highestSalaryTill2014);
         request.setAttribute("exitDate", exitDate);
         request.setAttribute("avgSalary5Yr", avgSalary5Yr);
         request.setAttribute("pension", pension);
-        request.setAttribute("empName", empName);
-        
 
         // Forward to result page
         RequestDispatcher dispatcher = request.getRequestDispatcher("result.jsp");

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.LinkedHashMap" %>
-<%@ page import="java.util.Set" %>
+<%@ page import="java.text.NumberFormat" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -66,6 +66,19 @@
             background-color: #2980b9;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .highlight-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .hike-badge {
+            font-size: 0.8rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background-color: #e3f2fd;
+            color: #1565c0;
         }
     </style>
 </head>
@@ -139,7 +152,7 @@
     <div class="mt-5">
         <h4 class="text-primary mb-3">📅 Year-wise Projected PF Pay - Entirely Hypothetical</h4>
         <%
-            Map<String, Integer> projections = (Map<String, Integer>) request.getAttribute("yearlyProjections");
+            Map<String, Integer> projections = (LinkedHashMap<String, Integer>) request.getAttribute("yearlyProjections");
             if (projections != null && !projections.isEmpty()) {
         %>
         <div class="table-responsive">
@@ -148,13 +161,41 @@
                     <tr>
                         <th>End of Year</th>
                         <th>Projected PF Pay (₹)</th>
+                        <th>Hike Applied</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <% for (Map.Entry<String, Integer> entry : projections.entrySet()) { %>
+                    <%
+                    int prevYear = 0;
+                    double prevPf = 0;
+                    for (Map.Entry<String, Integer> entry : projections.entrySet()) {
+                        int year = Integer.parseInt(entry.getKey());
+                        double currentPf = entry.getValue();
+                        String hikeDescription = "";
+                        
+                        if (prevYear != 0) {
+                            if (year == 2030) {
+                                hikeDescription = "<span class='hike-badge'>1.5x Pay Commission</span>";
+                            } else if (year < 2030) {
+                                if (year == 2025) {
+                                    hikeDescription = "<span class='hike-badge'>Base Year</span>";
+                                } else {
+                                    hikeDescription = "<span class='hike-badge'>5% DA + 3% Increment</span>";
+                                }
+                            } else {
+                                hikeDescription = "<span class='hike-badge'>1% DA + 3% Increment</span>";
+                            }
+                        } else {
+                            hikeDescription = "<span class='hike-badge'>Base Year</span>";
+                        }
+                        
+                        prevYear = year;
+                        prevPf = currentPf;
+                    %>
                         <tr>
                             <td><%= entry.getKey() %></td>
                             <td>₹ <%= entry.getValue() %></td>
+                            <td><%= hikeDescription %></td>
                         </tr>
                     <% } %>
                 </tbody>
@@ -165,18 +206,82 @@
         <% } %>
     </div>
 
-    <!-- Formula Explanation Section -->
+    <!-- PF Contribution Section -->
+    <%
+        Map<String, Double> yearlyOutflow = (LinkedHashMap<String, Double>) request.getAttribute("yearlyOutflow");
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(0);
+        double netOutflow = 0;
+        if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
+            netOutflow = yearlyOutflow.get(yearlyOutflow.keySet().toArray()[yearlyOutflow.size() - 1]);
+        }
+    %>
+    <div class="mt-5">
+        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow (9.49% of monthly PF Contribution + 8.5% annual interest)</h4>
+        <%
+            if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
+        %>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Year</th>
+                        <th>Accumulated PF Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <% for (Map.Entry<String, Double> entry : yearlyOutflow.entrySet()) { %>
+                    <tr>
+                        <td><%= entry.getKey() %></td>
+                        <td>₹ <%= nf.format(entry.getValue()) %></td>
+                    </tr>
+                <% } %>
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-info fw-bold fs-5 mt-3">
+            🧮 <strong>Approximate Company Contribution PF Outflow to be paid to EPFO:</strong> ₹ <%= (long) netOutflow %>
+        </div>
+        <% } else { %>
+            <p class="text-danger">PF contribution details not available.</p>
+        <% } %>
+    </div>
+
+    <!-- Updated Formula Explanation Section -->
     <div class="mt-4 p-4 bg-light rounded shadow-sm border">
-        <h5 class="text-dark mb-3">🧮 Formula for Projected Average PF Pay</h5>
-        <p>We calculate the projected average PF pay for the last 5 years using the following assumptions:</p>
-        <ul class="list-group list-group-flush mb-3">
-            <li class="list-group-item">📌 <strong>2025</strong> – No hike (used as base year)</li>
-            <li class="list-group-item">📈 <strong>8% yearly hike</strong> from <strong>2026 to 2029</strong></li>
-            <li class="list-group-item">💥 <strong>1.5x hike</strong> on <strong>Jan 1, 2030</strong> (Assuming Pay Commission implementation)</li>
-            <li class="list-group-item">🔄 <strong>4% yearly hike</strong> from <strong>2030 onward</strong> until the employee turns 58</li>
-            <li class="list-group-item">🚫 Promotions and other benefits not considered</li>
-        </ul>
-        <p class="mb-0">Then we take the average of the projected PF pays from the last 5 years before retirement.</p>
+        <h5 class="text-dark mb-3">🧮 PF Projection Calculation Methodology</h5>
+        
+        <div class="highlight-box">
+            <h6 class="fw-bold">📌 Current Year (2025):</h6>
+            <p>No hike applied - uses current PF pay as base value</p>
+            
+            <h6 class="fw-bold mt-3">📈 Until December 2029:</h6>
+            <ul>
+                <li><strong>5% DA hike</strong> every January</li>
+                <li><strong>3% increment hike</strong> in month <%= request.getAttribute("incrementMonth") %></li>
+            </ul>
+            
+            <h6 class="fw-bold mt-3">💥 January 2030:</h6>
+            <p><strong>1.5x (50%) one-time hike</strong> for Pay Commission implementation</p>
+            <p><em>Note: The 3% increment still applies in month <%= request.getAttribute("incrementMonth") %> after the 1.5x hike</em></p>
+            
+            <h6 class="fw-bold mt-3">🔄 From January 2031 until retirement:</h6>
+            <ul>
+                <li><strong>1% DA hike</strong> every January</li>
+                <li><strong>Continuing 3% increment hike</strong> in month <%= request.getAttribute("incrementMonth") %></li>
+            </ul>
+        </div>
+        
+        <div class="mt-3">
+            <h6 class="fw-bold">💰 PF Contribution Calculation:</h6>
+            <ul>
+                <li>9.49% of monthly PF pay contributed by company</li>
+                <li>8.5% annual interest on accumulated balance</li>
+            </ul>
+            
+            <h6 class="fw-bold mt-3">📊 Average Calculation:</h6>
+            <p>Average of last 5 years' PF pay before retirement (60 months)</p>
+        </div>
     </div>
 </div>
 
