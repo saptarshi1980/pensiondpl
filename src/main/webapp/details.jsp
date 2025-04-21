@@ -177,7 +177,7 @@
         }
     %>
     <div class="mt-5">
-        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(9.49% of monthly PF Contribution of Company side + 8.5% per annum PF Interest , accumulated year on year )</h4>
+        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(9.49% of monthly PF Contribution of Company side + 8.25% per annum PF Interest , accumulated year on year )</h4>
         <%
             if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
         %>

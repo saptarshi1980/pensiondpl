@@ -50,10 +50,11 @@ public class FetchEmployeeServlet extends HttpServlet {
                         pfPay = rs.getDouble("pf_pay");
                         joinDate = rs.getString("join_date");
                         serviceYears = rs.getInt("service_years");
+                        System.out.println("Join date from DB: '" + joinDate + "'");
 
                         if (joinDate != null && !joinDate.isEmpty()) {
                             try {
-                                LocalDate joinLocalDate = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                                LocalDate joinLocalDate = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                                 incrementMonth = joinLocalDate.getMonthValue();
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -163,9 +164,13 @@ public class FetchEmployeeServlet extends HttpServlet {
                 months = retirementDate.getMonthValue();
             }
 
-            double yearlyContribution = months * pfValue * 0.0949;
+            double yearlyContribution = (months * (pfValue-15000) * 0.0949)+(months * 15000 * 0.0833);
+            /* Manoj da told the above logic, i want to compare the difference between two calculation */
+            double yearlyContributionold = (months * pfValue * 0.0949);
+             
+            System.out.println("Yearly Contribution-"+yearlyContribution+"*** Yearly Contribution old-"+yearlyContributionold);
             balance += yearlyContribution;
-            balance *= 1.0825; // Add 8.5% interest
+            balance *= 1.0825; // Add 8.25% interest
             outflows.put(year, Math.round(balance * 100.0) / 100.0);
         }
 
