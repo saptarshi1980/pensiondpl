@@ -28,7 +28,7 @@ public class FetchEmployeeServlet extends HttpServlet {
         Map<String, Integer> yearlyProjections = new LinkedHashMap<>();
         Map<String, Double> yearlyOutflow = new LinkedHashMap<>();
         double totalOutflow = 0.0;
-        int incrementMonth = 1; // Default to January if not available
+        int incrementMonth = 1;
 
         try (Connection con = DBUtil.getConnection()) {
 
@@ -50,16 +50,14 @@ public class FetchEmployeeServlet extends HttpServlet {
                         pfPay = rs.getDouble("pf_pay");
                         joinDate = rs.getString("join_date");
                         serviceYears = rs.getInt("service_years");
-                        
-                        // Extract increment month from join_date
+
                         if (joinDate != null && !joinDate.isEmpty()) {
                             try {
-                                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                                LocalDate joinLocalDate = LocalDate.parse(joinDate, formatter);
+                                LocalDate joinLocalDate = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
                                 incrementMonth = joinLocalDate.getMonthValue();
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                incrementMonth = 1; // Fallback to January if parsing fails
+                                incrementMonth = 1;
                             }
                         }
                     }
@@ -83,8 +81,7 @@ public class FetchEmployeeServlet extends HttpServlet {
             }
 
             if (retirementMonthEnd != null && latestPfPay > 0) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                LocalDate retirementDate = LocalDate.parse(retirementMonthEnd, formatter);
+                LocalDate retirementDate = LocalDate.parse(retirementMonthEnd, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
                 LocalDate currentDate = LocalDate.now();
 
                 projectedAvgPf = calculateProjectedAveragePf(latestPfPay, currentDate, retirementDate, incrementMonth);
@@ -116,132 +113,89 @@ public class FetchEmployeeServlet extends HttpServlet {
     }
 
     private static double calculateProjectedAveragePf(double currentPf, LocalDate currentDate, 
-            LocalDate retirementDate, int incrementMonth) {
-        List<Double> monthlyPfValues = new ArrayList<>();
+                                                      LocalDate retirementDate, int incrementMonth) {
+        List<Double> monthlyPf = new ArrayList<>();
         double pf = currentPf;
-        LocalDate datePointer = currentDate.withDayOfMonth(1); // Start from current month
-        
+        LocalDate datePointer = currentDate.withDayOfMonth(1);
+
         while (!datePointer.isAfter(retirementDate)) {
-            // Special 1.5x hike in January 2030
-            if (datePointer.getYear() == 2030 && datePointer.getMonthValue() == 1) {
-                pf *= 1.5;
-            } 
-            // Pre-2030 rules
-            else if (datePointer.getYear() < 2030) {
-                // Apply 5% DA hike in January
-                if (datePointer.getMonthValue() == 1) {
-                    pf *= 1.05;
-                }
-                // Apply 3% increment hike in join month (if not January)
-                if (datePointer.getMonthValue() == incrementMonth && incrementMonth != 1) {
-                    pf *= 1.03;
-                }
-            }
-            // Post-2030 rules
-            else if (datePointer.getYear() > 2030) {
-                // Apply 1% DA hike in January
-                if (datePointer.getMonthValue() == 1) {
-                    pf *= 1.01;
-                }
-                // Continue 3% increment in join month
-                if (datePointer.getMonthValue() == incrementMonth) {
-                    pf *= 1.03;
-                }
-            }
-            
-            // Store the PF value for this month
-            monthlyPfValues.add(pf);
+            pf = applyPfHikeRules(pf, datePointer, incrementMonth);
+            monthlyPf.add(pf);
             datePointer = datePointer.plusMonths(1);
         }
 
-        // Get last 60 months (5 years) for average calculation
-        int monthsToConsider = Math.min(60, monthlyPfValues.size());
-        if (monthsToConsider == 0) return 0;
-        
-        List<Double> lastMonths = monthlyPfValues.subList(
-            Math.max(0, monthlyPfValues.size() - monthsToConsider), 
-            monthlyPfValues.size());
-        
-        return lastMonths.stream()
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0);
+        int months = Math.min(60, monthlyPf.size());
+        return months == 0 ? 0 :
+                monthlyPf.subList(monthlyPf.size() - months, monthlyPf.size())
+                         .stream().mapToDouble(Double::doubleValue).average().orElse(0);
     }
 
-    private static Map<String, Integer> getYearWisePfProjection(double currentPf,
-            LocalDate currentDate, LocalDate retirementDate, int incrementMonth) {
-        Map<String, Integer> yearWiseProjection = new LinkedHashMap<>();
+    private static Map<String, Integer> getYearWisePfProjection(double currentPf, LocalDate currentDate, 
+                                                                LocalDate retirementDate, int incrementMonth) {
+        Map<String, Integer> projections = new LinkedHashMap<>();
         double pf = currentPf;
         LocalDate datePointer = currentDate.withDayOfMonth(1);
-        int currentYear = datePointer.getYear();
-        double decemberPf = pf;
-        
+
         while (!datePointer.isAfter(retirementDate)) {
-            // Special 1.5x hike in January 2030
-            if (datePointer.getYear() == 2030 && datePointer.getMonthValue() == 1) {
-                pf *= 1.5;
-            } 
-            // Pre-2030 rules
-            else if (datePointer.getYear() < 2030) {
-                // Apply 5% DA hike in January
-                if (datePointer.getMonthValue() == 1) {
-                    pf *= 1.05;
-                }
-                // Apply 3% increment hike in join month (if not January)
-                if (datePointer.getMonthValue() == incrementMonth && incrementMonth != 1) {
-                    pf *= 1.03;
-                }
-            }
-            // Post-2030 rules
-            else if (datePointer.getYear() > 2030) {
-                // Apply 1% DA hike in January
-                if (datePointer.getMonthValue() == 1) {
-                    pf *= 1.01;
-                }
-                // Continue 3% increment in join month
-                if (datePointer.getMonthValue() == incrementMonth) {
-                    pf *= 1.03;
-                }
-            }
-            
-            // Record December value for each year
+            pf = applyPfHikeRules(pf, datePointer, incrementMonth);
+
             if (datePointer.getMonthValue() == 12) {
-                decemberPf = pf;
-                yearWiseProjection.put(String.valueOf(datePointer.getYear()), (int) Math.round(decemberPf));
-                currentYear++;
+                projections.put(String.valueOf(datePointer.getYear()), (int) Math.round(pf));
                 datePointer = datePointer.plusYears(1).withMonth(1);
             } else {
                 datePointer = datePointer.plusMonths(1);
             }
         }
-        
-        // Handle case where retirement is before December
-        if (!yearWiseProjection.containsKey(String.valueOf(retirementDate.getYear()))) {
-            yearWiseProjection.put(String.valueOf(retirementDate.getYear()), (int) Math.round(pf));
-        }
-        
-        return yearWiseProjection;
+        return projections;
     }
 
-    private static Map<String, Double> calculateYearlyOutflow(double initialPfPay, 
-            Map<String, Integer> yearlyPfPay, LocalDate retirementDate) {
-        Map<String, Double> yearlyOutflow = new LinkedHashMap<>();
-        double accumulatedBalance = 0.0;
+    private static Map<String, Double> calculateYearlyOutflow(double basePf, Map<String, Integer> projections, 
+                                                              LocalDate retirementDate) {
+        Map<String, Double> outflows = new LinkedHashMap<>();
+        double balance = 0;
 
-        for (Map.Entry<String, Integer> entry : yearlyPfPay.entrySet()) {
-            int year = Integer.parseInt(entry.getKey());
-            int monthlyPf = entry.getValue();
-            int monthsInYear = 12;
+        for (Map.Entry<String, Integer> entry : projections.entrySet()) {
+            String year = entry.getKey();
+            int pfValue = entry.getValue();
 
-            if (year == retirementDate.getYear()) {
-                monthsInYear = retirementDate.getMonthValue();  // months until retirement month
+            int months = 12;
+            if (Integer.parseInt(year) == retirementDate.getYear()) {
+                months = retirementDate.getMonthValue();
             }
 
-            double yearlyContribution = monthlyPf * 0.0949 * monthsInYear;
-            accumulatedBalance = (accumulatedBalance + yearlyContribution) * 1.085;  // applying 8.5% interest annually
-            yearlyOutflow.put(entry.getKey(), (double) Math.round(accumulatedBalance));
+            double yearlyContribution = months * pfValue * 0.0949;
+            balance += yearlyContribution;
+            balance *= 1.0825; // Add 8.5% interest
+            outflows.put(year, Math.round(balance * 100.0) / 100.0);
         }
 
-        return yearlyOutflow;
+        return outflows;
+    }
+
+    private static double applyPfHikeRules(double pf, LocalDate date, int incrementMonth) {
+        int year = date.getYear();
+        int month = date.getMonthValue();
+
+        if (year == 2030 && month == 1) {
+            return pf * 1.5;
+        }
+        if (year == 2040 && month == 1) {
+            return pf * 1.25;
+        }
+
+        if (year < 2030) {
+        	if (month == incrementMonth) pf *= 1.03;
+        	if (month == 1) pf *= 1.05;
+            
+        } else if (year >= 2031 && year <= 2040) {
+        	if (month == incrementMonth) pf *= 1.03;
+        	if (month == 1) pf *= 1.01;
+            
+        } else if (year > 2040) {
+        	if (month == incrementMonth) pf *= 1.03;
+        	if (month == 1) pf *= 1.01;
+            
+        }
+        return pf;
     }
 }
