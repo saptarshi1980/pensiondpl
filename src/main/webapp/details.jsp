@@ -248,7 +248,72 @@
         <% } %>
     </div>
     
-     
+    
+    <!-- PF Contribution Section -->
+<div class="mt-5">
+    <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(If PF Pay exceeds ₹15,000, Contribution Outflow = (8.33% of PF Pay + 1.16% of (PF Pay − ₹15,000) − ₹1,250). If PF Pay is ₹15,000 or less, the contribution is zero. Contribution accumulated year on year )</h4>
+    <%
+        // Reuse existing yearlyOutflow, nf, and calculate netOutflow differently
+        if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
+            // Reset netOutflow value
+            netOutflow = 0;
+            
+            // Use retirement value if available, otherwise use the last year value
+            if (yearlyOutflow.containsKey("retirement")) {
+                netOutflow = yearlyOutflow.get("retirement");
+            } else {
+                // Get the last regular yearly entry
+                String lastKey = null;
+                for (String key : yearlyOutflow.keySet()) {
+                    if (!"retirement".equals(key)) {
+                        lastKey = key;
+                    }
+                }
+                if (lastKey != null) {
+                    netOutflow = yearlyOutflow.get(lastKey);
+                }
+            }
+    %>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Year</th>
+                    <th>Accumulated PF Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% 
+               // Display regular yearly entries
+               for (Map.Entry<String, Double> entry : yearlyOutflow.entrySet()) { 
+                   if (!"retirement".equals(entry.getKey())) {
+            %>
+                <tr>
+                    <td><%= entry.getKey() %>-<%= Integer.parseInt(entry.getKey()) + 1 %></td>
+                    <td>₹ <%= nf.format(entry.getValue()) %></td>
+                </tr>
+            <% 
+                   }
+               } 
+            %>
+            </tbody>
+            <tfoot class="table-dark">
+                <tr>
+                    <th>Final Balance at Retirement (November 2035)</th>
+                    <th>₹ <%= nf.format(netOutflow) %></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    <div class="alert alert-info fw-bold fs-5 mt-3">
+        🧮 <strong>Approximate Company Contribution PF Outflow to be paid to EPFO - From Present Year to completion of your 58 years of age:</strong> ₹ <%= nf.format(netOutflow) %>
+        <p>🧮 <strong>Please Note that initial Demand amount claimed by EPFO is not included in this amount. Hence, you need to account for that value separately.</strong></p>
+    </div>
+    <% } else { %>
+        <p class="text-danger">PF contribution details not available.</p>
+    <% } %>
+</div>     
 
     <!-- Formula Explanation Section -->
     <div class="mt-4 p-4 bg-light rounded shadow-sm border">
