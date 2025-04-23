@@ -5,6 +5,8 @@ import com.example.util.DBUtil;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -12,29 +14,51 @@ import java.util.*;
 
 public class FetchEmployeeServlet extends HttpServlet {
 
-    static class PayComponents {
+    public static class PayComponents {
         double basic;
         double da;
+        
         PayComponents(double basic, double da) {
             this.basic = basic;
             this.da = da;
         }
 
-        double getPfPay() {
+        public double getPfPay() {
             return basic + da;
+        }
+
+        public double getBasic() {
+            return basic;
+        }
+
+        public void setBasic(double basic) {
+            this.basic = basic;
+        }
+
+        public double getDa() {
+            return da;
+        }
+
+        public void setDa(double da) {
+            this.da = da;
         }
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Create a StringWriter to capture the console output
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter logWriter = new PrintWriter(stringWriter);
+
         String empId = request.getParameter("empId");
+        boolean downloadReport = "true".equals(request.getParameter("downloadReport"));
 
         String empName = null, dob = null, retirementMonthEnd = null, joinDate = null;
         double pfPay = 0, projectedAvgPf = 0, totalOutflow = 0;
         int serviceYears = 0, incrementMonth = 1;
         PayComponents payComponents = new PayComponents(0, 0);
-        Map<String, Integer> yearlyProjections = new LinkedHashMap<>();
+        Map<String, PayComponents> yearlyProjections = new LinkedHashMap<>();
         Map<String, Double> yearlyOutflow = new LinkedHashMap<>();
 
         try (Connection con = DBUtil.getConnection()) {
@@ -83,133 +107,260 @@ public class FetchEmployeeServlet extends HttpServlet {
                 }
             }
 
+            // Add report header with employee information
+            logWriter.println("==============================================================================================================");
+            logWriter.println("                                       PF PROJECTION REPORT");
+            logWriter.println("==============================================================================================================");
+            logWriter.println("Employee ID: " + empId);
+            logWriter.println("Employee Name: " + empName);
+            logWriter.println("Date of Birth: " + dob);
+            logWriter.println("Retirement Date: " + retirementMonthEnd);
+            logWriter.println("Service Years: " + serviceYears);
+            logWriter.println("==============================================================================================================");
+
             if (retirementMonthEnd != null && payComponents.getPfPay() > 0) {
                 LocalDate retirementDate = LocalDate.parse(retirementMonthEnd, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
                 LocalDate currentDate = LocalDate.now();
 
-                projectedAvgPf = calculateProjectedAveragePf(currentDate, retirementDate, incrementMonth, new PayComponents(payComponents.basic, payComponents.da));
-                yearlyProjections = getYearWisePfProjection(currentDate, retirementDate, incrementMonth, new PayComponents(payComponents.basic, payComponents.da));
-                yearlyOutflow = calculateYearlyOutflow(yearlyProjections, retirementDate);
+                // We've removed the debug outputs as requested
+                
+                projectedAvgPf = calculateProjectedAveragePf(currentDate, retirementDate, incrementMonth, new PayComponents(payComponents.basic, payComponents.da), logWriter);
+                yearlyProjections = getYearWisePfProjection(currentDate, retirementDate, incrementMonth, new PayComponents(payComponents.basic, payComponents.da), logWriter);
+                yearlyOutflow = calculateYearlyOutflow(yearlyProjections, retirementDate, logWriter, empId, empName);
                 totalOutflow = yearlyOutflow.values().stream().mapToDouble(Double::doubleValue).sum();
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(logWriter); // Write stack trace to our log
             throw new ServletException("Database error occurred", e);
         }
 
-        request.setAttribute("empId", empId);
-        request.setAttribute("empName", empName);
-        request.setAttribute("dob", dob);
-        request.setAttribute("retirementMonthEnd", retirementMonthEnd);
-        request.setAttribute("pfPay", pfPay);
-        request.setAttribute("joinDate", joinDate);
-        request.setAttribute("serviceYears", serviceYears);
-        request.setAttribute("latestPfPay", payComponents.getPfPay());
-        request.setAttribute("projectedAvgPf", projectedAvgPf);
-        request.setAttribute("yearlyProjections", yearlyProjections);
-        request.setAttribute("yearlyOutflow", yearlyOutflow);
-        request.setAttribute("totalOutflow", totalOutflow);
-        request.setAttribute("incrementMonth", incrementMonth);
+        // Flush the writer to ensure all content is captured
+        logWriter.flush();
+        
+        // If download parameter is true, send the log as a downloadable file
+        if (downloadReport) {
+            // Set the content type and header for the response
+            response.setContentType("text/plain");
+            response.setHeader("Content-Disposition", "attachment; filename=\"PF_Projection_" + empId + ".txt\"");
+            
+            // Write the captured output to the response
+            try (PrintWriter out = response.getWriter()) {
+                out.write(stringWriter.toString());
+            }
+        } else {
+            // Normal flow - show the JSP page
+            request.setAttribute("empId", empId);
+            request.setAttribute("empName", empName);
+            request.setAttribute("dob", dob);
+            request.setAttribute("retirementMonthEnd", retirementMonthEnd);
+            request.setAttribute("pfPay", pfPay);
+            request.setAttribute("joinDate", joinDate);
+            request.setAttribute("serviceYears", serviceYears);
+            request.setAttribute("latestPfPay", payComponents.getPfPay());
+            request.setAttribute("projectedAvgPf", projectedAvgPf);
+            request.setAttribute("yearlyProjections", yearlyProjections);
+            request.setAttribute("yearlyOutflow", yearlyOutflow);
+            request.setAttribute("totalOutflow", totalOutflow);
+            request.setAttribute("incrementMonth", incrementMonth);
+            request.setAttribute("consoleOutput", stringWriter.toString());
 
-        request.getRequestDispatcher("details.jsp").forward(request, response);
+            request.getRequestDispatcher("details.jsp").forward(request, response);
+        }
     }
 
-    private static double calculateProjectedAveragePf(LocalDate currentDate, LocalDate retirementDate, int incrementMonth, PayComponents pay) {
+    private static double calculateProjectedAveragePf(LocalDate currentDate, LocalDate retirementDate, int incrementMonth, PayComponents pay, PrintWriter logWriter) {
         List<Double> monthlyPf = new ArrayList<>();
         LocalDate datePointer = currentDate.withDayOfMonth(1);
 
         while (!datePointer.isAfter(retirementDate)) {
-            double pf = applyPfHikeRules(pay, datePointer, incrementMonth);
+            double pf = applyPfHikeRules(pay, datePointer, incrementMonth, logWriter);
             monthlyPf.add(pf);
             datePointer = datePointer.plusMonths(1);
         }
 
-        
         int months = Math.min(60, monthlyPf.size());
         return months == 0 ? 0 :
                 monthlyPf.subList(monthlyPf.size() - months, monthlyPf.size())
                          .stream().mapToDouble(Double::doubleValue).average().orElse(0);
     }
 
-    private static Map<String, Integer> getYearWisePfProjection(LocalDate currentDate, LocalDate retirementDate, int incrementMonth, PayComponents pay) {
-        Map<String, Integer> projections = new LinkedHashMap<>();
+    private static Map<String, PayComponents> getYearWisePfProjection(LocalDate currentDate, LocalDate retirementDate, int incrementMonth, PayComponents pay, PrintWriter logWriter) {
+        Map<String, PayComponents> projections = new LinkedHashMap<>();
+        PayComponents currentPay = new PayComponents(pay.basic, pay.da);
         LocalDate datePointer = currentDate.withDayOfMonth(1);
 
         while (!datePointer.isAfter(retirementDate)) {
-            double pf = applyPfHikeRules(pay, datePointer, incrementMonth);
-            if (datePointer.getMonthValue() == 12) {
-                projections.put(String.valueOf(datePointer.getYear()), (int) Math.round(pf));
-                datePointer = datePointer.plusYears(1).withMonth(1);
-            } else {
-                datePointer = datePointer.plusMonths(1);
+            applyPfHikeRules(currentPay, datePointer, incrementMonth, logWriter);
+            
+            // Store projection for each December or retirement month (if it's before December)
+            if (datePointer.getMonthValue() == 12 || datePointer.equals(retirementDate.withDayOfMonth(1))) {
+                projections.put(String.valueOf(datePointer.getYear()), 
+                              new PayComponents(currentPay.basic, currentPay.da));
             }
+            
+            datePointer = datePointer.plusMonths(1);
         }
         
-        System.out.println("Month: " + datePointer + ", PF Pay: " + pay.getPfPay());
         return projections;
     }
 
-    private static Map<String, Double> calculateYearlyOutflow(Map<String, Integer> projections, LocalDate retirementDate) {
-        Map<String, Double> outflows = new LinkedHashMap<>();
+    private static Map<String, Double> calculateYearlyOutflow(Map<String, PayComponents> yearlyProjections, 
+                                                             LocalDate retirementDate, 
+                                                             PrintWriter logWriter,
+                                                             String empId,
+                                                             String empName) {
+        Map<String, Double> yearlyOutflows = new LinkedHashMap<>();
         double balance = 0;
+        double monthlyInterestRate = 0.0825 / 12;
+        
+        // Removed the retirement date debug info as requested
+        
+        logWriter.println("==============================================================================================================");
+        logWriter.println("                          Monthly PF Outflow Calculation with Salary Components");
+        logWriter.println("==============================================================================================================");
+        logWriter.println("Employee ID: " + empId);
+        logWriter.println("Employee Name: " + empName);
+        logWriter.println("--------------------------------------------------------------------------------------------------------------");
+        logWriter.printf("%-6s %-8s %-12s %-12s %-15s %-15s %-15s %-15s%n", 
+                        "Year", "Month", "Basic", "DA", "Opening Bal", "Contribution", "Interest", "Closing Bal");
+        logWriter.println("--------------------------------------------------------------------------------------------------------------");
 
-        for (Map.Entry<String, Integer> entry : projections.entrySet()) {
-            String year = entry.getKey();
-            int pfValue = entry.getValue();
-
-            int months = 12;
-            if (Integer.parseInt(year) == retirementDate.getYear()) {
-                months = retirementDate.getMonthValue();
+        // Convert month-year processing to absolute date processing
+        LocalDate startDate = LocalDate.of(2025, 4, 1); // April 2025
+        LocalDate currentDate = startDate;
+        
+        while (!currentDate.isAfter(retirementDate)) {
+            // Find the appropriate salary components for this year
+            String yearKey = String.valueOf(currentDate.getYear());
+            PayComponents pay = yearlyProjections.get(yearKey);
+            
+            if (pay == null) {
+                // If we don't have data for this year, use the last available year's data
+                String lastYear = null;
+                for (String year : yearlyProjections.keySet()) {
+                    if (Integer.parseInt(year) <= currentDate.getYear()) {
+                        lastYear = year;
+                    }
+                }
+                if (lastYear != null) {
+                    pay = yearlyProjections.get(lastYear);
+                } else {
+                    // No data available
+                    break;
+                }
             }
-
-            double contribution = (months * (pfValue - 15000) * 0.0949) + (months * 15000 * 0.0833);
-            balance += contribution;
-            balance *= 1.0825;
-            outflows.put(year, Math.round(balance * 100.0) / 100.0);
+            
+            double monthlyContribution = (pay.getPfPay() > 15000) ? 
+                                      (15000 * 0.0833) + ((pay.getPfPay() - 15000) * 0.0949)-1250 :
+                                      pay.getPfPay() * 0.0833;
+            double adminFeePerMonth = 0;
+            double netMonthlyContribution = monthlyContribution - adminFeePerMonth;
+            
+            // Process this month
+            int month = currentDate.getMonthValue();
+            int year = currentDate.getYear();
+            boolean isLastMonth = month == 3;  // March is last month of financial year
+            String monthName = new String[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}[month-1];
+            
+            double openingBalance = balance;
+            double interest = balance * monthlyInterestRate;
+            balance += interest;
+            
+            if (!isLastMonth) {
+                balance += netMonthlyContribution;
+            }
+            
+            // Format the financial year correctly
+            String displayYear = (month >= 4) ? String.valueOf(year) : String.valueOf(year - 1);
+            
+            logWriter.printf("%-6s %-8s %,12.2f %,12.2f %,15.2f %,15.2f %,15.2f %,15.2f%n", 
+                            displayYear, 
+                            monthName,
+                            pay.basic,
+                            pay.da,
+                            openingBalance,
+                            (!isLastMonth) ? netMonthlyContribution : 0.0,
+                            interest,
+                            balance);
+            
+            // Special handling for March (end of fiscal year)
+            if (isLastMonth) {
+                openingBalance = balance;
+                balance += netMonthlyContribution;
+                logWriter.printf("%-6s %-8s %,12.2f %,12.2f %,15.2f %,15.2f %,15.2f %,15.2f%n", 
+                                displayYear, 
+                                monthName + "*",
+                                pay.basic,
+                                pay.da,
+                                openingBalance,
+                                netMonthlyContribution,
+                                0.0,
+                                balance);
+                
+                // Store the year's total
+                String financialYear = String.valueOf(year - 1);
+                yearlyOutflows.put(financialYear, Math.round(balance * 100.0) / 100.0);
+                
+                logWriter.println("--------------------------------------------------------------------------------------------------------------");
+                logWriter.printf("%-6s %-8s %-12s %-12s %-15s %,15.2f%n", 
+                                "Year", financialYear, "", "", "Total:", yearlyOutflows.get(financialYear));
+                logWriter.println("--------------------------------------------------------------------------------------------------------------");
+            }
+            
+            // Move to next month
+            currentDate = currentDate.plusMonths(1);
+            
+            // Hard stop at retirement date
+            if (currentDate.isAfter(retirementDate)) {
+                break;
+            }
         }
-
-        return outflows;
+        
+        return yearlyOutflows;
     }
-
-    private static double applyPfHikeRules(PayComponents pay, LocalDate date, int incrementMonth) {
+    
+    private static double applyPfHikeRules(PayComponents pay, LocalDate date, int incrementMonth, PrintWriter logWriter) {
         int year = date.getYear(), month = date.getMonthValue();
 
-        //Pay scale  2030
         if (year == 2030 && month == 1) {
+            // Apply the special 1.87 multiplier first
             pay.basic *= 1.87;
-            pay.da = pay.basic*0.02;
-            System.out.println("Year-"+year+", Basic-"+pay.basic+", DA-"+pay.da);
-        //Pay scale 2040    
+            // Apply three 3% hikes
+            pay.basic = pay.basic * 1.03 * 1.03 * 1.03;
+            pay.da = pay.basic * 0.02;
+            
+            // If increment month is January, also apply the regular yearly increment
+            if (incrementMonth == 1) {
+                pay.basic *= 1.03;
+            }
         } else if (year == 2040 && month == 1) {
+            // Apply the special 1.4 multiplier first
             pay.basic *= 1.4;
-            pay.da = pay.basic*0.01;
-            System.out.println("Year-"+year+", Basic-"+pay.basic+", DA-"+pay.da);
+            // Apply three 3% hikes
+            pay.basic = pay.basic * 1.03 * 1.03 * 1.03;
+            pay.da = pay.basic * 0.01;
             
-        } 
-        
-        else if (year < 2030) {
-        	//Apply increment
-        	if (month == incrementMonth) pay.basic *= 1.03;
-        	
-            //Apply DA increase
+            // If increment month is January, also apply the regular yearly increment
+            if (incrementMonth == 1) {
+                pay.basic *= 1.03;
+            }
+        } else if (year < 2030) {
+            // Regular yearly increment based on increment month
+            if (month == incrementMonth) pay.basic *= 1.03;
+            // January DA adjustment
             if (month == 1) pay.da += pay.basic * 0.05;
-            
-            System.out.println("Year-"+year+", Basic-"+pay.basic+", DA-"+pay.da);
-        } else if (year >= 2031 && year <= 2040) {
-        	//Apply increment
-        	if (month == incrementMonth) pay.basic *= 1.03;
-        	//Apply DA increase
-        	if (month == 1) pay.da += pay.basic * 0.02;
-        	System.out.println("Year-"+year+", Basic-"+pay.basic+", DA-"+pay.da);
+        } else if (year >= 2030 && year <= 2040) {
+            // Regular yearly increment based on increment month
+            if (month == incrementMonth) pay.basic *= 1.03;
+            // January DA adjustment
+            if (month == 1) pay.da += pay.basic * 0.02;
         } else if (year > 2040) {
-        	//Apply increment
-        	if (month == incrementMonth) pay.basic *= 1.03;
-        	//Apply DA increase
-        	if (month == 1) pay.da += pay.basic * 0.005;
-        	System.out.println("Year-"+year+", Basic-"+pay.basic+", DA-"+pay.da);
+            // Regular yearly increment based on increment month
+            if (month == incrementMonth) pay.basic *= 1.03;
+            // January DA adjustment
+            if (month == 1) pay.da += pay.basic * 0.005;
         }
-
         return pay.getPfPay();
     }
 }

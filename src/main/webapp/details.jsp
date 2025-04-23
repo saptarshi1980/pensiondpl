@@ -3,6 +3,7 @@
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.text.NumberFormat" %>
+<%@ page import="com.example.FetchEmployeeServlet.PayComponents" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -137,34 +138,41 @@
     </form>
 
     <!-- Year-wise Projection Section -->
-    <div class="mt-5">
-        <h4 class="text-primary mb-3">📅 Year-wise Projected PF Pay - Entirely Hypothetical</h4>
-        <%
-            Map<String, Integer> projections = (Map<String, Integer>) request.getAttribute("yearlyProjections");
-            if (projections != null && !projections.isEmpty()) {
-        %>
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover">
-                <thead class="table-light">
+    <!-- Year-wise Projection Section -->
+<div class="mt-5">
+    <h4 class="text-primary mb-3">📅 Year-wise Projected PF Pay - Entirely Hypothetical</h4>
+    <%
+        Map<String, PayComponents> projections = (Map<String, PayComponents>) request.getAttribute("yearlyProjections");
+        if (projections != null && !projections.isEmpty()) {
+    %>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>End of Year</th>
+                    <th>Basic Salary (₹)</th>
+                    <th>DA (₹)</th>
+                    <th>Projected PF Pay (₹) Per Month</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for (Map.Entry<String, PayComponents> entry : projections.entrySet()) { 
+                    PayComponents pay = entry.getValue();
+                %>
                     <tr>
-                        <th>End of Year</th>
-                        <th>Projected PF Pay (₹) Per Month</th>
+                        <td><%= entry.getKey() %></td>
+                        <td>₹ <%= String.format("%,.0f", pay.getBasic()) %></td>
+                        <td>₹ <%= String.format("%,.0f", pay.getDa()) %></td>
+                        <td>₹ <%= String.format("%,.0f", pay.getPfPay()) %></td>
                     </tr>
-                </thead>
-                <tbody>
-                    <% for (Map.Entry<String, Integer> entry : projections.entrySet()) { %>
-                        <tr>
-                            <td><%= entry.getKey() %></td>
-                            <td>₹ <%= entry.getValue() %></td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
-        </div>
-        <% } else { %>
-            <p class="text-danger">No projection data available.</p>
-        <% } %>
+                <% } %>
+            </tbody>
+        </table>
     </div>
+    <% } else { %>
+        <p class="text-danger">No projection data available.</p>
+    <% } %>
+</div>
 
     <!-- PF Contribution Section -->
     <%
@@ -177,7 +185,7 @@
         }
     %>
     <div class="mt-5">
-        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(9.49% of monthly PF Contribution of Company side + 8.25% per annum PF Interest , accumulated year on year )</h4>
+        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(9.49% of PF Pay amount exceeding ₹ 15,000 + 8.33% of ₹ 15,000 of monthly PF Contribution of Company side + 8.25% per annum PF Interest , accumulated year on year )</h4>
         <%
             if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
         %>
@@ -199,6 +207,7 @@
                 </tbody>
             </table>
         </div>
+        
         <div class="alert alert-info fw-bold fs-5 mt-3">
             🧮 <strong>Approximate Company Contrubution PF Outflow to be paid to EPFO - From Present Year to completion of your 58 years of age :</strong> ₹ <%= (long) netOutflow %>
             <p>🧮 <strong>Please Note that initial Demand amount claimed by EPFO is not included in this amount. Hence, you need to account for that value separately. </strong> 
@@ -207,6 +216,12 @@
             <p class="text-danger">PF contribution details not available.</p>
         <% } %>
     </div>
+    
+      <form action="FetchEmployeeServlet" method="post">
+        <input type="hidden" name="empId" value="${empId}">
+        <input type="hidden" name="downloadReport" value="true">
+        <button type="submit" class="download-btn">Download PF Projection Report</button>
+    </form>
 
     <!-- Formula Explanation Section -->
     <div class="mt-4 p-4 bg-light rounded shadow-sm border">
@@ -215,11 +230,11 @@
         <ul class="list-group list-group-flush mb-3">
             <li class="list-group-item">📌 <strong>2025</strong> – No hike (used as base year)</li>
             <li class="list-group-item">📈 <strong>8% yearly hike (3% increment and 5% DA)</strong> from <strong>2026 to 2029</strong></li>
-            <li class="list-group-item">💥 <strong>Pay Commision Assuming - 1.86 Multiplying Factor of Basic Salary with 2% DA to Start with</strong> on <strong>Jan 1, 2030</strong></li>
+            <li class="list-group-item">💥 <strong>Pay Commision Assuming - 1.86 Multiplying Factor of Basic Salary with 2% DA to Start with</strong> on <strong>Jan 1, 2030. Please note that Pay commission is due on Jan 2026. Hence Notional fitment will be given from 1st Jan 2026 but actual implementation is expected to take place from Jan 2030</strong></li>
             <li class="list-group-item">🔄 <strong>5% yearly hike (3% increment and 2% DA)</strong> from <strong>2030-2040</strong> until the employee turns 58</li>
-            <li class="list-group-item">🔄 <strong>Pay Commision Assuming - 1.4 Multiplying Factor of Basic Salary with 1% DA to Start with</strong> on <strong>Jan 1, 2040</strong></li>
+            <li class="list-group-item">🔄 <strong>Pay Commision Assuming - 1.4 Multiplying Factor of Basic Salary with 1% DA to Start with</strong> on <strong>Jan 1, 2040. Please note that Pay commission is due on Jan 2036. Hence Notional fitment will be given from 1st Jan 2026 but actual implementation is expected to take place from Jan 2030</strong></li>
             <li class="list-group-item">🔄 <strong>4% yearly hike (3% increment and 0.5% DA)</strong> from <strong>2040-2050</strong> until the employee turns 58</li>
-            <li class="list-group-item">🚫 Promotions and other benefits not considered</li>
+            <li class="list-group-item"><strong>🚫 Promotions and other benefits not considered<strong></li>
         </ul>
         <p class="mb-0">Then we take the average of the projected PF pays from the last 5 years before retirement.</p>
     </div>
