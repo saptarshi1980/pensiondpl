@@ -93,7 +93,7 @@ public class FetchEmployeeServlet extends HttpServlet {
                         if (joinDate != null && !joinDate.isEmpty()) {
                             LocalDate joinLocalDate = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                             incrementMonth = joinLocalDate.getMonthValue();
-                            logWriter.println("Increment month fetched from data: " + incrementMonth);
+                            //logWriter.println("Increment month fetched from data: " + incrementMonth);
                         }
                     }
                 }
@@ -224,8 +224,8 @@ public class FetchEmployeeServlet extends HttpServlet {
         logWriter.println("                          Monthly PF Outflow Calculation with Salary Components");
         logWriter.println(
                 "==============================================================================================================");
-        logWriter.println("Employee ID: " + empId);
-        logWriter.println("Employee Name: " + empName);
+        //logWriter.println("Employee ID: " + empId);
+        //logWriter.println("Employee Name: " + empName);
         logWriter.println("Formula used as follows");
         logWriter.println(
                 "========================================================================================================================================================================================================================");
