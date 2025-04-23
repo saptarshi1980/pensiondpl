@@ -135,7 +135,7 @@
     </div>
 
     <div class="detail-row">
-        <div class="detail-label">Projected Average PF Pay (Last 5 years till the age of 58 years):</div>
+        <div class="detail-label">Projected Average PF Pay of last 60 months (till the age of 58 years):</div>
         <div class="detail-value text-success fw-bold">
             ₹ <%= Math.round(Double.parseDouble(request.getAttribute("projectedAvgPf").toString())) %>
         </div>
@@ -183,7 +183,7 @@
     %>
     <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover">
-            <thead class="table-light">F
+            <thead class="table-light">
                 <tr>
                     <th>End of Year</th>
                     <th>Basic Salary (₹)</th>
@@ -268,7 +268,7 @@
             <li class="list-group-item">🔄 <strong>4% yearly hike (3% increment and 0.5% DA)</strong> from <strong>2040-2050</strong> until the employee turns 58</li>
             <li class="list-group-item"><strong>🚫 Promotions and other benefits not considered<strong></li>
         </ul>
-        <p class="mb-0">Then we take the average of the projected PF pays from the last 5 years before retirement.</p>
+        <p class="mb-0">Then we take the average of the projected PF pays from the last 60 months before retirement(58 Years).</p>
     </div>
 </div>
 

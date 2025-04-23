@@ -182,20 +182,50 @@ public class FetchEmployeeServlet extends HttpServlet {
         }
     }
 
-    private static double calculateProjectedAveragePf(LocalDate currentDate, LocalDate retirementDate, int incrementMonth, PayComponents pay, PrintWriter logWriter) {
+	/*
+	 * private static double calculateProjectedAveragePf(LocalDate currentDate,
+	 * LocalDate retirementDate, int incrementMonth, PayComponents pay, PrintWriter
+	 * logWriter) { List<Double> monthlyPf = new ArrayList<>(); LocalDate
+	 * datePointer = currentDate.withDayOfMonth(1);
+	 * 
+	 * while (!datePointer.isAfter(retirementDate)) { double pf =
+	 * applyPfHikeRules(pay, datePointer, incrementMonth, logWriter);
+	 * monthlyPf.add(pf); datePointer = datePointer.plusMonths(1); }
+	 * 
+	 * int months = Math.min(60, monthlyPf.size()); return months == 0 ? 0 :
+	 * monthlyPf.subList(monthlyPf.size() - months, monthlyPf.size()).stream()
+	 * .mapToDouble(Double::doubleValue).average().orElse(0); }
+	 */
+    
+    
+    private static double calculateProjectedAveragePf(LocalDate currentDate, LocalDate retirementDate, int incrementMonth, PayComponents initialPay, PrintWriter logWriter) {
         List<Double> monthlyPf = new ArrayList<>();
         LocalDate datePointer = currentDate.withDayOfMonth(1);
+        
+        // Create a new copy to avoid modifying the original
+        PayComponents currentPay = new PayComponents(initialPay);
 
         while (!datePointer.isAfter(retirementDate)) {
-            double pf = applyPfHikeRules(pay, datePointer, incrementMonth, logWriter);
-            monthlyPf.add(pf);
+            // Apply the rules for this month
+            double pfPay = applyPfHikeRules(currentPay, datePointer, incrementMonth, logWriter);
+            
+            // Store the PF pay for this month
+            monthlyPf.add(pfPay);
+            
+            // Move to next month
             datePointer = datePointer.plusMonths(1);
         }
 
+        // Calculate average of last 60 months or all months if less than 60
         int months = Math.min(60, monthlyPf.size());
-        return months == 0 ? 0 :
-                monthlyPf.subList(monthlyPf.size() - months, monthlyPf.size())
-                         .stream().mapToDouble(Double::doubleValue).average().orElse(0);
+        if (months == 0) return 0;
+        
+        double sum = 0;
+        for (int i = monthlyPf.size() - months; i < monthlyPf.size(); i++) {
+            sum += monthlyPf.get(i);
+        }
+        
+        return sum / months;
     }
     
     // Method to access the projections extracted during the last calculateYearlyOutflow run
