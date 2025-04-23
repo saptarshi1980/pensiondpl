@@ -186,7 +186,7 @@
     <p class="disclaimer">
         <strong>Disclaimer:</strong> This calculation is based on the last 5 year's average salary entered by user. 
         The actual pension amount may vary based on official (EPFO) verification, calculations, NCP Days etc. 
-        DPL does not take any responsibility for the accuracy of this pension amount.
+        This calculator software does not take any responsibility for the accuracy of this pension amount.
     </p>
     
     <a href="index.jsp">← Calculate Again</a>

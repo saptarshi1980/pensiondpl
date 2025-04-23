@@ -6,7 +6,7 @@
 </head>
 <body>
 <div style="padding: 10px; background-color: #e9ecef; text-align: center;">
-  <a href="/pensiondpl/break-even.jsp"  font-size: 18px; color: #333; font-weight: bold;">
+  <a href="/pensiondpl/break-even.jsp"  style="font-size: 18px; color: #1d1aed ; font-weight: bold;">
     Break-Even Calculator 
   </a>
     <div class="container">

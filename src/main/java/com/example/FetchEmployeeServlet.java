@@ -115,7 +115,7 @@ public class FetchEmployeeServlet extends HttpServlet {
             logWriter.println("Employee Name: " + empName);
             logWriter.println("Date of Birth: " + dob);
             logWriter.println("Retirement Date: " + retirementMonthEnd);
-            logWriter.println("Service Years: " + serviceYears);
+            logWriter.println("Service Years before Sept 2014: " + serviceYears);
             logWriter.println("==============================================================================================================");
 
             if (retirementMonthEnd != null && payComponents.getPfPay() > 0) {
@@ -221,10 +221,15 @@ public class FetchEmployeeServlet extends HttpServlet {
         logWriter.println("==============================================================================================================");
         logWriter.println("Employee ID: " + empId);
         logWriter.println("Employee Name: " + empName);
-        logWriter.println("--------------------------------------------------------------------------------------------------------------");
-        logWriter.printf("%-6s %-8s %-12s %-12s %-15s %-15s %-15s %-15s%n", 
-                        "Year", "Month", "Basic", "DA", "Opening Bal", "Contribution", "Interest", "Closing Bal");
-        logWriter.println("--------------------------------------------------------------------------------------------------------------");
+        logWriter.println("Formula used as follows");
+        logWriter.println("========================================================================================================================================================================================================================");
+        logWriter.println("If PF Pay exceeds Rs 15,000, Contribution Outflow = (8.33% of PF Pay plus 1.16% of (PF Pay minus Rs 15,000) minus Rs 1,250). If PF Pay is Rs 15,000 or less, the contribution is zero.. Contribution accumulated year on year");
+        logWriter.println("========================================================================================================================================================================================================================");
+        logWriter.println("---------------------------------------------------------------------------------------------------------------------------------------------");
+        logWriter.printf("%-14s %14s %15s %15s %18s %18s %15s %18s%n", 
+                "Financial Year", "Month", "Basic", "DA", "Opening Bal", "Contribution", "Interest", "Closing Bal");
+
+        logWriter.println("----------------------------------------------------------------------------------------------------------------------------------------");
 
         // Convert month-year processing to absolute date processing
         LocalDate startDate = LocalDate.of(2025, 4, 1); // April 2025
@@ -252,8 +257,8 @@ public class FetchEmployeeServlet extends HttpServlet {
             }
             
             double monthlyContribution = (pay.getPfPay() > 15000) ? 
-                                      (15000 * 0.0833) + ((pay.getPfPay() - 15000) * 0.0949)-1250 :
-                                      pay.getPfPay() * 0.0833;
+                                      (pay.getPfPay() * 0.0833) + ((pay.getPfPay() - 15000) * 0.0116)-1250 :
+                                      0;
             double adminFeePerMonth = 0;
             double netMonthlyContribution = monthlyContribution - adminFeePerMonth;
             
@@ -274,38 +279,40 @@ public class FetchEmployeeServlet extends HttpServlet {
             // Format the financial year correctly
             String displayYear = (month >= 4) ? String.valueOf(year) : String.valueOf(year - 1);
             
-            logWriter.printf("%-6s %-8s %,12.2f %,12.2f %,15.2f %,15.2f %,15.2f %,15.2f%n", 
-                            displayYear, 
-                            monthName,
-                            pay.basic,
-                            pay.da,
-                            openingBalance,
-                            (!isLastMonth) ? netMonthlyContribution : 0.0,
-                            interest,
-                            balance);
+            logWriter.printf("%-14s %14s %,15.2f %,15.2f %,18.2f %,18.2f %,15.2f %,18.2f%n", 
+                    displayYear, 
+                    monthName,
+                    pay.basic,
+                    pay.da,
+                    openingBalance,
+                    (!isLastMonth) ? netMonthlyContribution : 0.0,
+                    interest,
+                    balance);
+            
             
             // Special handling for March (end of fiscal year)
             if (isLastMonth) {
                 openingBalance = balance;
                 balance += netMonthlyContribution;
-                logWriter.printf("%-6s %-8s %,12.2f %,12.2f %,15.2f %,15.2f %,15.2f %,15.2f%n", 
-                                displayYear, 
-                                monthName + "*",
-                                pay.basic,
-                                pay.da,
-                                openingBalance,
-                                netMonthlyContribution,
-                                0.0,
-                                balance);
+                logWriter.printf("%-14s %14s %,15.2f %,15.2f %,18.2f %,18.2f %,15.2f %,18.2f%n", 
+                        displayYear, 
+                        monthName + "*",
+                        pay.basic,
+                        pay.da,
+                        openingBalance,
+                        netMonthlyContribution,
+                        0.0,
+                        balance);
                 
                 // Store the year's total
                 String financialYear = String.valueOf(year - 1);
                 yearlyOutflows.put(financialYear, Math.round(balance * 100.0) / 100.0);
                 
-                logWriter.println("--------------------------------------------------------------------------------------------------------------");
-                logWriter.printf("%-6s %-8s %-12s %-12s %-15s %,15.2f%n", 
-                                "Year", financialYear, "", "", "Total:", yearlyOutflows.get(financialYear));
-                logWriter.println("--------------------------------------------------------------------------------------------------------------");
+                logWriter.println("--------------------------------------------------------------------------------------------------------------------------------------------------------");
+                logWriter.printf("%-14s %14s %15s %15s %18s %18s %,15.2f %18s%n", 
+                        "Financial Year", financialYear, "", "", "", "Total:", yearlyOutflows.get(financialYear), "");
+
+                logWriter.println("--------------------------------------------------------------------------------------------------------------------------------------------------------");
             }
             
             // Move to next month

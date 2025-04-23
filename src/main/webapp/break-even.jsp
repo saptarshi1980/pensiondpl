@@ -62,10 +62,13 @@
 </head>
 <body>
 <div style="padding: 10px; background-color: #e9ecef; text-align: center;">
-  <a href="/pensiondpl/index.jsp" font-size: 18px; color: #333; font-weight: bold;">
-    Pension Calculator
-  </a>
+ <a href="/pensiondpl/index.jsp" style="font-size: 18px; color: #1d1aed ; font-weight: bold;">
+  Link for Pension Calculator
+</a>
     <h2>Pension Break-Even Calculator</h2>
+    <h3 style="color: #C70039;">
+    Lumpsum Amount = (The Demanded Amount of EPFO) + (Interest of this demanded amount till your retirement) + (PF Outflow predicted by this Pension Calculator)
+</h3>
     <div class="container">
         <form action="PensionBreakEvenServlet" method="post">
             <table>

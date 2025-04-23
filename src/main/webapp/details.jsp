@@ -69,6 +69,29 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+        
+        .center-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+        }
+        
+        .btn-report {
+            background-color: #C70039 ;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-report:hover {
+            background-color: #581845 ;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -136,6 +159,14 @@
             <button type="submit" class="btn-calculate">Calculate Pension</button>
         </div>
     </form>
+    
+    <div class="center-page">
+        <form action="FetchEmployeeServlet" method="post">
+            <input type="hidden" name="empId" value="${empId}">
+            <input type="hidden" name="downloadReport" value="true">
+            <button type="submit" class="btn-report">Download Month-wise PF Contribution Projection Report</button>
+        </form>
+    </div>
 
     <!-- Year-wise Projection Section -->
     <!-- Year-wise Projection Section -->
@@ -185,7 +216,7 @@
         }
     %>
     <div class="mt-5">
-        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(9.49% of PF Pay amount exceeding ₹ 15,000 + 8.33% of ₹ 15,000 of monthly PF Contribution of Company side + 8.25% per annum PF Interest , accumulated year on year )</h4>
+        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(If PF Pay exceeds ₹15,000, Contribution Outflow = (8.33% of PF Pay + 1.16% of (PF Pay − ₹15,000) − ₹1,250). If PF Pay is ₹15,000 or less, the contribution is zero. Contribution accumulated year on year )</h4>
         <%
             if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
         %>
@@ -217,11 +248,7 @@
         <% } %>
     </div>
     
-      <form action="FetchEmployeeServlet" method="post">
-        <input type="hidden" name="empId" value="${empId}">
-        <input type="hidden" name="downloadReport" value="true">
-        <button type="submit" class="download-btn">Download PF Projection Report</button>
-    </form>
+     
 
     <!-- Formula Explanation Section -->
     <div class="mt-4 p-4 bg-light rounded shadow-sm border">
@@ -232,7 +259,7 @@
             <li class="list-group-item">📈 <strong>8% yearly hike (3% increment and 5% DA)</strong> from <strong>2026 to 2029</strong></li>
             <li class="list-group-item">💥 <strong>Pay Commision Assuming - 1.86 Multiplying Factor of Basic Salary with 2% DA to Start with</strong> on <strong>Jan 1, 2030. Please note that Pay commission is due on Jan 2026. Hence Notional fitment will be given from 1st Jan 2026 but actual implementation is expected to take place from Jan 2030</strong></li>
             <li class="list-group-item">🔄 <strong>5% yearly hike (3% increment and 2% DA)</strong> from <strong>2030-2040</strong> until the employee turns 58</li>
-            <li class="list-group-item">🔄 <strong>Pay Commision Assuming - 1.4 Multiplying Factor of Basic Salary with 1% DA to Start with</strong> on <strong>Jan 1, 2040. Please note that Pay commission is due on Jan 2036. Hence Notional fitment will be given from 1st Jan 2026 but actual implementation is expected to take place from Jan 2030</strong></li>
+            <li class="list-group-item">🔄 <strong>Pay Commision Assuming - 1.4 Multiplying Factor of Basic Salary with 1% DA to Start with</strong> on <strong>Jan 1, 2040. Please note that Pay commission is due on Jan 2036. Hence Notional fitment will be given from 1st Jan 2026 but actual implementation is expected to take place from Jan 2040</strong></li>
             <li class="list-group-item">🔄 <strong>4% yearly hike (3% increment and 0.5% DA)</strong> from <strong>2040-2050</strong> until the employee turns 58</li>
             <li class="list-group-item"><strong>🚫 Promotions and other benefits not considered<strong></li>
         </ul>
