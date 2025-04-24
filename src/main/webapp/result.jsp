@@ -194,7 +194,7 @@
     </div>
     <p><strong>Estimated Monthly Pension (rounded):</strong> <span class="pension-amount">₹ <%= String.format("%,d", roundedPension) %></span></p>
     <p>
-  <strong>Estimated Net PF Contribution Outflow - </strong>
+  <strong>Estimated PF Contribution Outflow - </strong>
   <span class="highlight-period">Current date to 58 years age (rounded):</span> 
   <span class="pension-amount">₹ <%= String.format("%d", netOutflow) %></span>
 </p>

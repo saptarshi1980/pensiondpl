@@ -38,23 +38,31 @@
 </div>
 
 			<!-- Disclaimer Box -->
-			<div class="disclaimer-box p-3 mb-4 rounded-end">
-				<h5 class="fw-bold">Disclaimer:</h5>
-				<p>This Projection calculator is based on many future assumption like:</p>
-				<ul class="mb-2">
-					<li>Increment and fixed DA will be given each year</li>
-					<li>7th Pay commission will be effective from 2026 and
-						implemented in 2030</li>
-					<li>8th Pay commission will be effective from 2036 and
-						implemented in 2040</li>
-					<li>Promotions/upliftment not considered</li>
-				</ul>
-				<p class="mb-0">Therefore, The projected Pension and Company
-					side PF outflow amounts are totally approximate in nature based on the formula
-					given by EPFO.The company side PF Outflow (From current date
-					to retirement-58years) which will be calculated by this system does
-					not include one time demand amount of EPFO.</p>
-			</div>
+			<!-- Disclaimer Box -->
+<div class="disclaimer-box p-3 mb-4 rounded-end">
+  <h5 class="fw-bold">Disclaimer:</h5>
+  <p>This projection calculator is based on many future assumptions like:</p>
+  <ul class="mb-2">
+    <li>Increment and fixed DA will be given each year</li>
+    <li>7th Pay Commission will be effective from 2026 and implemented in 2030</li>
+    <li>8th Pay Commission will be effective from 2036 and implemented in 2040</li>
+    <li>Promotions/upliftment not considered</li>
+  </ul>
+
+  <p class="mb-2">
+    Therefore, the projected Pension and Company side PF outflow 
+    <span style="font-weight: 900; background-color: #ffffff; color: #150e92; padding: 5px 10px; border-radius: 5px;">
+      (From the current year to till you turn 58 years)
+    </span> 
+    amounts are totally approximate in nature based on the formula given by EPFO.
+  </p>
+
+  <div class="mt-2 p-2 rounded border-start border-4 border-danger text-danger fw-bold">
+    <i class="fas fa-exclamation-circle me-1"></i>
+    EPFO Demand amount from start of your service to current date is not included in this calculation / projection.
+  </div>
+</div>
+
 
 			<form action="FetchEmployeeServlet" method="post"
 				class="needs-validation" novalidate>
