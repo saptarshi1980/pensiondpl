@@ -159,8 +159,8 @@
             
             <tr>
                 <td>First Part (Till 31-08-2014)</td>
-                <td><%= (int)serviceDays%> days × ₹<%= String.format("%,.2f", highestSalaryTill2014) %></td>
-                <td>₹<%= String.format("%,.2f", firstPart) %></td>
+                <td><%= (int)serviceDays%> days × ₹ <%= String.format("%,.2f", highestSalaryTill2014) %></td>
+                <td>₹ <%= String.format("%,.2f", firstPart) %></td>
             </tr>
             <tr>
                 <td>Days After 01-09-2014</td>
@@ -169,13 +169,13 @@
             </tr>
             <tr>
                 <td>Second Part (After 31-08-2014)</td>
-                <td><%= daysAfter2014 %> days × ₹<%= String.format("%,.2f", avgSalary5Yr) %></td>
-                <td>₹<%= String.format("%,.2f", secondPart) %></td>
+                <td><%= daysAfter2014 %> days × ₹ <%= String.format("%,.2f", avgSalary5Yr) %></td>
+                <td>₹ <%= String.format("%,.2f", secondPart) %></td>
             </tr>
             <tr>
                 <td>Total Numerator</td>
                 <td>First Part + Second Part</td>
-                <td>₹<%= String.format("%,.2f", totalNumerator) %></td>
+                <td>₹ <%= String.format("%,.2f", totalNumerator) %></td>
             </tr>
             <tr>
                 <td>Total Denominator</td>

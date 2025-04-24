@@ -224,7 +224,7 @@
 </div>
 
     <div class="mt-5">
-        <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(If PF Pay exceeds ₹15,000, Contribution Outflow = (8.33% of PF Pay + 1.16% of (PF Pay − ₹15,000) − ₹1,250). If PF Pay is ₹15,000 or less, the contribution is zero. Contribution accumulated year on year )</h4>
+        <h5 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(If PF Pay exceeds ₹15,000, Contribution Outflow = (8.33% of PF Pay + 1.16% of (PF Pay − ₹15,000) − ₹1,250). If PF Pay is ₹15,000 or less, the contribution is zero. Contribution accumulated year on year )</h4>
         <%
             if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
         %>
