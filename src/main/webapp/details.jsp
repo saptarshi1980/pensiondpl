@@ -144,6 +144,10 @@
             <div class="detail-label">Service Days (till 31/08/2014):</div>
             <div class="detail-value"><%= request.getAttribute("serviceDays") %> days</div>
         </div>
+        <div class="detail-row">
+            <div class="detail-label">EPFO Demand Amount as on April 2025:</div>
+            <div class="detail-value">₹ <%= request.getAttribute("demand_amt") %> </div>
+        </div>
     </div>
 
     <div class="detail-row">
@@ -155,6 +159,7 @@
 
     <form action="CalculatePensionServlet" method="post" class="salary-input">
         <input type="hidden" name="empId" value="<%= request.getAttribute("empId") %>">
+        <input type="hidden" name="demand_amt" value="<%= request.getAttribute("demand_amt") %>">
         <input type="hidden" name="empName" value="<%= request.getAttribute("empName") %>">
         <input type="hidden" name="serviceDays" value="<%= request.getAttribute("serviceDays") %>">
         <input type="hidden" name="highestSalaryTill2014" value="<%= request.getAttribute("pfPay") %>">
@@ -181,6 +186,7 @@
     <div class="center-page">
         <form action="FetchEmployeeServlet" method="post">
             <input type="hidden" name="empId" value="${empId}">
+            <input type="hidden" name="demand_amt" value="${demand_amt}">
             <input type="hidden" name="downloadReport" value="true">
             <button type="submit" class="btn-report">Download Month-wise PF Contribution Projection Report</button>
         </form>
@@ -248,13 +254,13 @@
         </div>
         
      <div class="alert alert-info fw-bold fs-5 mt-3" style="color: #f54275;">
-    🧮 <strong>Approximate Company Contribution PF Outflow to be paid to EPFO - From Present Year to completion of your 58 years of age :</strong> ₹ <strong class="net-outflow"><%= (long) netOutflow %></strong>
+    🧮 <strong>Approximate Company Contribution PF Outflow to be paid to EPFO <!-- - From Present Year to completion of your 58 years of age --> :</strong> ₹ <strong class="net-outflow"><%= (long) netOutflow %></strong>
 </div>
 <% } else { %>
     <p class="text-danger">PF contribution details not available.</p>
 <% } %>
 
-<p>🧮 <strong>Please Note that initial Demand amount claimed by EPFO is not included in this amount. Hence, you need to account for that value separately. </strong>
+<!-- <p>🧮 <strong>Please Note that initial Demand amount claimed by EPFO is not included in this amount. Hence, you need to account for that value separately. </strong> -->
 </div>
      
 

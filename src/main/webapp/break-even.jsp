@@ -66,9 +66,9 @@
   Click here for Pension Calculator
 </a>
     <h2>Pension Break-Even Calculator</h2>
-    <h3 style="color: #C70039;">
+   <!--  <h3 style="color: #C70039;">
     Lumpsum Amount = (The Demanded Amount of EPFO) + (Interest of this demanded amount till your retirement) + (PF Outflow predicted by this Pension Calculator)
-</h3>
+</h3> -->
     <div class="container">
         <form action="PensionBreakEvenServlet" method="post">
             <table>

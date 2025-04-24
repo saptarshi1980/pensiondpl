@@ -51,27 +51,31 @@
 
   <p class="mb-2">
     Therefore, the projected Pension and Company side PF outflow 
-    <span style="font-weight: 900; background-color: #ffffff; color: #150e92; padding: 5px 10px; border-radius: 5px;">
+    <!-- <span style="font-weight: 900; background-color: #ffffff; color: #150e92; padding: 5px 10px; border-radius: 5px;">
       (From the current year to till you turn 58 years)
-    </span> 
+    </span>  -->
     amounts are totally approximate in nature based on the formula given by EPFO.
   </p>
 
-  <div class="mt-2 p-2 rounded border-start border-4 border-danger text-danger fw-bold">
+  <!-- <div class="mt-2 p-2 rounded border-start border-4 border-danger text-danger fw-bold">
     <i class="fas fa-exclamation-circle me-1"></i>
     EPFO Demand amount from start of your service to current date is not included in this calculation / projection.
-  </div>
+  </div> -->
 </div>
 
-
+	
 			<form action="FetchEmployeeServlet" method="post"
 				class="needs-validation" novalidate>
 				<div class="mb-3">
-					<label for="empId" class="form-label">Enter Employee ID</label> <input
+					<label for="empId" class="form-label"><strong>Enter Employee ID</strong></label> <input
 						type="text" class="form-control" name="empId" id="empId" required
 						pattern="\d{4,5}" placeholder="Employee ID">
 					<div class="invalid-feedback">Please enter a valid Employee
 						ID .</div>
+						
+					<label for="demand_amt" class="form-label"><strong>Enter EPFO Demand Amount + Contribution and Interest from 2023-2025</strong></label> <input
+						type="text" class="form-control" name="demand_amt" id="demand_amt" required
+						pattern="\d{}" placeholder="Enter EPFO demand amount + Contribution and Interest from 2023-2025 (Enter zero if you dont know this amount but keep in mind that the calculation will not consider EPFO Demand amount in Contribution Projection)">	
 				</div>
 
 				<div class="form-check mb-3">
