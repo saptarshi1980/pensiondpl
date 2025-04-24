@@ -149,7 +149,7 @@
         <input type="hidden" name="retirementMonthEnd" value="<%= request.getAttribute("retirementMonthEnd") %>">
 
         <div class="input-title">
-            If you think the above projection is incorrect, you can enter your own estimate of the average PF Pay for the last 5 years (up to age 58):
+            If you think the above projection is incorrect, you can enter your own estimate of the average PF Pay for the last 60 months (up to age 58):
         </div>
 
         <div class="input-group mb-3">
@@ -258,7 +258,7 @@
     <!-- Formula Explanation Section -->
     <div class="mt-4 p-4 bg-light rounded shadow-sm border">
         <h5 class="text-dark mb-3">🧮 Formula for Projected Average PF Pay</h5>
-        <p>We calculate the projected average PF pay for the last 5 years using the following assumptions:</p>
+        <p>We calculate the projected average PF pay for the last 60 months using the following assumptions:</p>
         <ul class="list-group list-group-flush mb-3">
             <li class="list-group-item">📌 <strong>2025</strong> – No hike (used as base year)</li>
             <li class="list-group-item">📈 <strong>8% yearly hike (3% increment and 5% DA)</strong> from <strong>2026 to 2029</strong></li>

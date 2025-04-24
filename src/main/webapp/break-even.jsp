@@ -63,7 +63,7 @@
 <body>
 <div style="padding: 10px; background-color: #e9ecef; text-align: center;">
  <a href="/pensiondpl/index.jsp" style="font-size: 18px; color: #1d1aed ; font-weight: bold;">
-  Link for Pension Calculator
+  Click here for Pension Calculator
 </a>
     <h2>Pension Break-Even Calculator</h2>
     <h3 style="color: #C70039;">

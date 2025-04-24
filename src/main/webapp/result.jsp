@@ -116,7 +116,7 @@
     <p><strong>Employee Name:</strong> <%= request.getAttribute("empName") %></p>
     <p><strong>Pensionable Service Years (till 31-08-2014):</strong> <%= serviceYears %> years</p>
     <p><strong>Highest Salary Till 31-08-2014:</strong> ₹ <%= String.format("%,.2f", highestSalaryTill2014) %></p>
-    <p><strong>Average Salary for Last 5 Years:</strong> ₹ <%= String.format("%,.2f", avgSalary5Yr) %></p>
+    <p><strong>Average Salary for Last 60 months:</strong> ₹ <%= String.format("%,.2f", avgSalary5Yr) %></p>
     <p><strong>Retirement Date:</strong> <%= formattedExitDate %></p>
 
     <div class="breakdown">
@@ -125,7 +125,7 @@
             <div class="formula-title">Pension Formula:</div>
             <div class="formula">
 [(Service Days × Highest PF Pay Till August 2014) + 
-(Days After August 2014 × Average monthly PF Pay of last 5 years till you turn 58 years )] 
+(Days After August 2014 × Average monthly PF Pay of last 60 months till you turn 58 years )] 
 / (70 × 365)
             </div>
         </div>
@@ -184,7 +184,7 @@
     <p><strong>Estimated Monthly Pension (rounded):</strong> <span class="pension-amount">₹ <%= String.format("%,d", roundedPension) %></span></p>
     
     <p class="disclaimer">
-        <strong>Disclaimer:</strong> This calculation is based on the last 5 year's average salary entered by user. 
+        <strong>Disclaimer:</strong> This calculation is based on the last 60 month's average salary entered by user. 
         The actual pension amount may vary based on official (EPFO) verification, calculations, NCP Days etc. 
         This calculator software does not take any responsibility for the accuracy of this pension amount.
     </p>
