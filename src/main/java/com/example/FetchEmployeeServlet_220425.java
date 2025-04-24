@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class FetchEmployeeServlet extends HttpServlet {
+public class FetchEmployeeServlet_220425 extends HttpServlet {
 
     public static class PayComponents {
         double basic;
@@ -64,7 +64,7 @@ public class FetchEmployeeServlet extends HttpServlet {
 
         String empName = null, dob = null, retirementMonthEnd = null, joinDate = null;
         double pfPay = 0, projectedAvgPf = 0, totalOutflow = 0;
-        int serviceDays = 0, incrementMonth = 1;
+        int serviceYears = 0, incrementMonth = 1;
         PayComponents payComponents = new PayComponents(0, 0);
         Map<String, PayComponents> yearlyProjections = new LinkedHashMap<>();
         Map<String, Double> yearlyOutflow = new LinkedHashMap<>();
@@ -75,7 +75,7 @@ public class FetchEmployeeServlet extends HttpServlet {
             String query = "SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, " +
                     "TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58 * 12)), 'dd-mm-yyyy') AS retirement_month_end, " +
                     "p.pf_pay, p.join_date, " +
-                    "TO_DATE('31-08-2014', 'dd-mm-yyyy') - TO_DATE(p.join_date, 'dd-mm-yyyy') AS service_days " +
+                    "FLOOR(MONTHS_BETWEEN(TO_DATE('31-08-2014', 'dd-mm-yyyy'), TO_DATE(p.join_date, 'dd-mm-yyyy')) / 12 + 0.5) AS service_years " +
                     "FROM app_vw_emp e JOIN vw_dcpy_dpl_payslip p ON e.emp_id = p.ngs " +
                     "WHERE p.ngs = ? AND p.sal_month = 8 AND p.sal_year = 2014";
 
@@ -88,7 +88,7 @@ public class FetchEmployeeServlet extends HttpServlet {
                         retirementMonthEnd = rs.getString("retirement_month_end");
                         pfPay = rs.getDouble("pf_pay");
                         joinDate = rs.getString("join_date");
-                        serviceDays = rs.getInt("service_days");
+                        serviceYears = rs.getInt("service_years");
 
                         if (joinDate != null && !joinDate.isEmpty()) {
                             LocalDate joinLocalDate = LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
@@ -124,7 +124,7 @@ public class FetchEmployeeServlet extends HttpServlet {
             logWriter.println("Employee Name: " + empName);
             logWriter.println("Date of Birth: " + dob);
             logWriter.println("Retirement Date: " + retirementMonthEnd);
-            logWriter.println("Service Days before Sept 2014: " + serviceDays);
+            logWriter.println("Service Years before Sept 2014: " + serviceYears);
             logWriter.println("==============================================================================================================");
 
             if (retirementMonthEnd != null && payComponents.getPfPay() > 0) {
@@ -169,7 +169,7 @@ public class FetchEmployeeServlet extends HttpServlet {
             request.setAttribute("retirementMonthEnd", retirementMonthEnd);
             request.setAttribute("pfPay", pfPay);
             request.setAttribute("joinDate", joinDate);
-            request.setAttribute("serviceDays", serviceDays);
+            request.setAttribute("serviceYears", serviceYears);
             request.setAttribute("latestPfPay", payComponents.getPfPay());
             request.setAttribute("projectedAvgPf", projectedAvgPf);
             request.setAttribute("yearlyProjections", yearlyProjections);

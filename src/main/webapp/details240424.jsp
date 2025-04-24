@@ -4,18 +4,6 @@
 <%@ page import="java.util.Set" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="com.example.FetchEmployeeServlet.PayComponents" %>
-
-    <!-- PF Contribution Section -->
-    <%
-        Map<String, Double> yearlyOutflow = (Map<String, Double>) request.getAttribute("yearlyOutflow");
-        NumberFormat nf = NumberFormat.getInstance();
-        nf.setMaximumFractionDigits(0);
-        double netOutflow = 0;
-        if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
-            netOutflow = yearlyOutflow.get(yearlyOutflow.keySet().toArray()[yearlyOutflow.size() - 1]);
-        }
-    %>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -141,8 +129,8 @@
             <div class="detail-value"><%= request.getAttribute("joinDate") %></div>
         </div>
         <div class="detail-row">
-            <div class="detail-label">Service Days (till 31/08/2014):</div>
-            <div class="detail-value"><%= request.getAttribute("serviceDays") %> days</div>
+            <div class="detail-label">Service Years (till 31/08/2014):</div>
+            <div class="detail-value"><%= request.getAttribute("serviceYears") %> years</div>
         </div>
     </div>
 
@@ -156,10 +144,9 @@
     <form action="CalculatePensionServlet" method="post" class="salary-input">
         <input type="hidden" name="empId" value="<%= request.getAttribute("empId") %>">
         <input type="hidden" name="empName" value="<%= request.getAttribute("empName") %>">
-        <input type="hidden" name="serviceDays" value="<%= request.getAttribute("serviceDays") %>">
+        <input type="hidden" name="serviceYears" value="<%= request.getAttribute("serviceYears") %>">
         <input type="hidden" name="highestSalaryTill2014" value="<%= request.getAttribute("pfPay") %>">
         <input type="hidden" name="retirementMonthEnd" value="<%= request.getAttribute("retirementMonthEnd") %>">
-        <input type="hidden" name="netOutflow" value="<%= (long) netOutflow %>">
 
         <div class="input-title">
             If you think the above projection is incorrect, you can enter your own estimate of the average PF Pay for the last 60 months (up to age 58):
@@ -223,6 +210,16 @@
     <% } %>
 </div>
 
+    <!-- PF Contribution Section -->
+    <%
+        Map<String, Double> yearlyOutflow = (Map<String, Double>) request.getAttribute("yearlyOutflow");
+        NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits(0);
+        double netOutflow = 0;
+        if (yearlyOutflow != null && !yearlyOutflow.isEmpty()) {
+            netOutflow = yearlyOutflow.get(yearlyOutflow.keySet().toArray()[yearlyOutflow.size() - 1]);
+        }
+    %>
     <div class="mt-5">
         <h4 class="text-primary mb-3">💸 Year-wise Accumulated PF Outflow(If PF Pay exceeds ₹15,000, Contribution Outflow = (8.33% of PF Pay + 1.16% of (PF Pay − ₹15,000) − ₹1,250). If PF Pay is ₹15,000 or less, the contribution is zero. Contribution accumulated year on year )</h4>
         <%

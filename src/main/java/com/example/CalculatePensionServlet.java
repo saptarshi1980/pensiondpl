@@ -14,10 +14,11 @@ public class CalculatePensionServlet extends HttpServlet {
 
         String empId = request.getParameter("empId");
         String empName = request.getParameter("empName");
-        double serviceYears = Double.parseDouble(request.getParameter("serviceYears"));
+        double serviceDays = Double.parseDouble(request.getParameter("serviceDays"));
         double highestSalaryTill2014 = Double.parseDouble(request.getParameter("highestSalaryTill2014"));
         String exitDateStr = request.getParameter("retirementMonthEnd");
         double avgSalary5Yr = Double.parseDouble(request.getParameter("avgSalary"));
+        long netOutflow = Long.parseLong(request.getParameter("netOutflow"));
 
         // Parse exit date
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -25,16 +26,17 @@ public class CalculatePensionServlet extends HttpServlet {
 
         // Calculate pension
         PensionService pensionService = new PensionService();
-        double pension = pensionService.calculatePension(serviceYears, highestSalaryTill2014, exitDate, avgSalary5Yr);
+        double pension = pensionService.calculatePension(serviceDays, highestSalaryTill2014, exitDate, avgSalary5Yr);
 
         // Set attributes for JSP
         request.setAttribute("empId", empId);
         request.setAttribute("empName", empName);
-        request.setAttribute("serviceYears", serviceYears);
+        request.setAttribute("serviceDays", serviceDays);
         request.setAttribute("highestSalaryTill2014", highestSalaryTill2014);
         request.setAttribute("exitDate", exitDate);
         request.setAttribute("avgSalary5Yr", avgSalary5Yr);
         request.setAttribute("pension", pension);
+        request.setAttribute("netOutflow", netOutflow);
 
         // Forward to result page
         RequestDispatcher dispatcher = request.getRequestDispatcher("result.jsp");

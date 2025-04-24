@@ -5,15 +5,16 @@
 <%
     LocalDate exitDate = (LocalDate) request.getAttribute("exitDate");
     String formattedExitDate = exitDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-    double serviceYears = (double) request.getAttribute("serviceYears");
+    double serviceDays = (double) request.getAttribute("serviceDays");
     double highestSalaryTill2014 = (double) request.getAttribute("highestSalaryTill2014");
     double avgSalary5Yr = (double) request.getAttribute("avgSalary5Yr");
     double pensionAmount = (double) request.getAttribute("pension");
+    long netOutflow = (Long) request.getAttribute("netOutflow");
     long roundedPension = Math.round(pensionAmount);
     
     // Calculate breakdown values
-    double serviceWithAdditionalYears = serviceYears + 2;
-    long serviceDays = (long) (serviceWithAdditionalYears * 365);
+    double serviceWithAdditionalDays = serviceDays+730;
+    serviceDays = (long) (serviceWithAdditionalDays);
     double firstPart = serviceDays * highestSalaryTill2014;
     
     LocalDate startDate = LocalDate.of(2014, 9, 1);
@@ -105,6 +106,20 @@
         a:hover {
             text-decoration: underline;
         }
+        .highlight-period {
+  background-color: #FFF2CC;  /* Light yellow background */
+  color: #E67E22;           /* Orange text color */
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1.4em;
+}
+
+.pension-amount {
+  color: #eb4034;          /* Green color for the amount */
+  font-weight: bold;
+  font-size: 1.4em;
+}
     </style>
 </head>
 <body>
@@ -114,7 +129,7 @@
     <h3>Employee Information</h3>
     <p><strong>Employee ID:</strong> <%= request.getAttribute("empId") %></p>
     <p><strong>Employee Name:</strong> <%= request.getAttribute("empName") %></p>
-    <p><strong>Pensionable Service Years (till 31-08-2014):</strong> <%= serviceYears %> years</p>
+    <p><strong>Pensionable Service days (till 31-08-2014) + 2 Additional years :</strong> <%= (int)serviceDays-730 %> days + (2 x 365) days = <%= (int)serviceDays %> days </p>
     <p><strong>Highest Salary Till 31-08-2014:</strong> ₹ <%= String.format("%,.2f", highestSalaryTill2014) %></p>
     <p><strong>Average Salary for Last 60 months:</strong> ₹ <%= String.format("%,.2f", avgSalary5Yr) %></p>
     <p><strong>Retirement Date:</strong> <%= formattedExitDate %></p>
@@ -124,7 +139,7 @@
         <div class="formula-container">
             <div class="formula-title">Pension Formula:</div>
             <div class="formula">
-[(Service Days × Highest PF Pay Till August 2014) + 
+[(Service Days with 2 additional years × Highest PF Pay Till August 2014) + 
 (Days After August 2014 × Average monthly PF Pay of last 60 months till you turn 58 years )] 
 / (70 × 365)
             </div>
@@ -137,18 +152,14 @@
                 <th>Value</th>
             </tr>
             <tr>
-                <td>Service Years (with 2 additional years)</td>
-                <td><%= serviceYears %> years + 2 years</td>
-                <td><%= String.format("%.2f", serviceWithAdditionalYears) %> years</td>
+                <td>Service Days (with 2 additional years)</td>
+                <td><%= (int)serviceDays-730 %> days + 730 days</td>
+                <td><%= (int)serviceDays %> days</td>
             </tr>
-            <tr>
-                <td>Service Days</td>
-                <td><%= String.format("%.2f", serviceWithAdditionalYears) %> years × 365 days</td>
-                <td><%= serviceDays %> days</td>
-            </tr>
+            
             <tr>
                 <td>First Part (Till 31-08-2014)</td>
-                <td><%= serviceDays %> days × ₹<%= String.format("%,.2f", highestSalaryTill2014) %></td>
+                <td><%= (int)serviceDays%> days × ₹<%= String.format("%,.2f", highestSalaryTill2014) %></td>
                 <td>₹<%= String.format("%,.2f", firstPart) %></td>
             </tr>
             <tr>
@@ -182,6 +193,11 @@
         </div>
     </div>
     <p><strong>Estimated Monthly Pension (rounded):</strong> <span class="pension-amount">₹ <%= String.format("%,d", roundedPension) %></span></p>
+    <p>
+  <strong>Estimated Net PF Contribution Outflow - </strong>
+  <span class="highlight-period">Current date to 58 years age (rounded):</span> 
+  <span class="pension-amount">₹ <%= String.format("%d", netOutflow) %></span>
+</p>
     
     <p class="disclaimer">
         <strong>Disclaimer:</strong> This calculation is based on the last 60 month's average salary entered by user. 

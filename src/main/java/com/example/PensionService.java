@@ -5,13 +5,13 @@ import java.time.temporal.ChronoUnit;
 
 public class PensionService {
 
-    public double calculatePension(double pensionableServiceYears, 
+    public double calculatePension(double pensionableServiceDays, 
                                    double highestSalaryTill2014,
                                    LocalDate exitDate,
                                    double averageSalaryLast5Years) {
 
-        double serviceWithAdditionalYears = pensionableServiceYears + 2;
-        long serviceDays = (long) (serviceWithAdditionalYears * 365);
+        double serviceWithAdditionalDays = pensionableServiceDays + (2*365);
+        long serviceDays = (long) (serviceWithAdditionalDays);
         double firstPart = serviceDays * highestSalaryTill2014;
 
         LocalDate startDate = LocalDate.of(2014, 9, 1);
