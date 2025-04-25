@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class FetchEmployeeServlet extends HttpServlet {
+public class FetchEmployeeServletBack2504 extends HttpServlet {
 
 	public static class PayComponents {
 		double basic;
@@ -147,7 +147,7 @@ public class FetchEmployeeServlet extends HttpServlet {
 				// First, calculate yearly outflow - this will also populate
 				// lastCalculatedProjections
 				yearlyOutflow = calculateYearlyOutflow(payComponents, retirementDate, logWriter, empId, empName,
-						incrementMonth, demandAmt);
+						incrementMonth,demandAmt);
 
 				// Then extract projections from the calculateYearlyOutflow method's internal
 				// calculations
@@ -209,6 +209,7 @@ public class FetchEmployeeServlet extends HttpServlet {
 		}
 	}
 
+	
 	private static double calculateProjectedAveragePf(LocalDate currentDate, LocalDate retirementDate,
 			int incrementMonth, PayComponents initialPay, PrintWriter logWriter) {
 		List<Double> monthlyPf = new ArrayList<>();
@@ -252,6 +253,9 @@ public class FetchEmployeeServlet extends HttpServlet {
 		return result;
 	}
 
+	
+	
+	
 	private static Map<String, Double> calculateYearlyOutflow(PayComponents initialPay, LocalDate retirementDate, 
 	        PrintWriter logWriter, String empId, String empName, int incrementMonth, double openingPfBalance) {
 	    
@@ -263,9 +267,8 @@ public class FetchEmployeeServlet extends HttpServlet {
 	    double balance = openingPfBalance;  // Initialize with provided opening balance
 	    double monthlyInterestRate = 0.0825 / 12;
 	    double finalRetirementBalance = 0;
-	    double accruedInterest = 0.0;  // Track interest that accrues but isn't credited yet
 
-		logWriter.println("Formula used as follows");
+		 logWriter.println("Formula used as follows");
 	    logWriter.println(
 	            "========================================================================================================================================================================================================================");
 	    logWriter.println(
@@ -274,8 +277,8 @@ public class FetchEmployeeServlet extends HttpServlet {
 	            "========================================================================================================================================================================================================================");
 	    logWriter.println(
 	            "---------------------------------------------------------------------------------------------------------------------------------------------");
-	    logWriter.printf("%-14s %14s %15s %15s %18s %18s %15s %15s %18s%n", "Financial Year", "Month", "Basic", "DA",
-	            "Opening Bal", "Contribution", "Month Interest", "Accrued Int", "Closing Bal");
+	    logWriter.printf("%-14s %14s %15s %15s %18s %18s %15s %18s%n", "Financial Year", "Month", "Basic", "DA",
+	            "Opening Bal", "Contribution", "Interest", "Closing Bal");
 
 	    logWriter.println(
 	            "----------------------------------------------------------------------------------------------------------------------------------------");
@@ -333,73 +336,41 @@ public class FetchEmployeeServlet extends HttpServlet {
 
 	        // Process this month
 	        double openingBalance = balance;
-	        
-	        // Calculate interest accrued this month (but not added to balance yet)
-	        double monthlyInterest = round(openingBalance * monthlyInterestRate);
-	        accruedInterest += monthlyInterest;
-	        
-	        // Add contribution to the balance
-	        balance += netMonthlyContribution;
-	        
-	        // For March (end of financial year), add accrued interest to the balance
-	        if (isLastMonth) {
-	            balance += accruedInterest;
-	            double closingBalanceAfterInterest = round(balance);
-	            
-	            // Format the financial year correctly for calculation
-	            String financialYear = String.valueOf(year - 1);
-	            yearlyOutflows.put(financialYear, Math.round(closingBalanceAfterInterest * 100.0) / 100.0);
-	            
-	            // Display the March entry with added interest
-	            logWriter.printf("%-14s %14s %,15.2f %,15.2f %,18.2f %,18.2f %,15.2f %,15.2f %,18.2f%n", 
-	                    financialYear+"-"+(Integer.parseInt(financialYear)+1),
-	                    monthName,
-	                    monthlyPay.getBasic(), 
-	                    monthlyPay.getDa(), 
-	                    openingBalance,
-	                    netMonthlyContribution, 
-	                    monthlyInterest, 
-	                    accruedInterest, 
-	                    openingBalance + netMonthlyContribution);
-	                    
-	            // Add a second row showing interest credit
-	            logWriter.printf("%-14s %14s %,15.2f %,15.2f %,18.2f %,18.2f %,15.2f %,15.2f %,18.2f%n", 
-	                    financialYear+"-"+(Integer.parseInt(financialYear)+1),
-	                    monthName + "*", 
-	                    monthlyPay.getBasic(), 
-	                    monthlyPay.getDa(), 
-	                    openingBalance + netMonthlyContribution,
-	                    0.0, 
-	                    0.0, 
-	                    accruedInterest, 
-	                    closingBalanceAfterInterest);
-	            
-	            logWriter.println(
-	                    "--------------------------------------------------------------------------------------------------------------------------------------------------------");
-	            logWriter.printf("%-14s %14s %15s %15s %18s %18s %15s %15s %,18.2f%n", 
-	                    "Financial Year", 
-	                    financialYear+"-"+(Integer.parseInt(financialYear)+1), 
-	                    "", "", "", "Total:", "", "",
-	                    yearlyOutflows.get(financialYear));
-	            logWriter.println(
-	                    "--------------------------------------------------------------------------------------------------------------------------------------------------------");
-	                    
-	            // Reset accrued interest after adding to balance
-	            accruedInterest = 0.0;
-	        } else {
-	            // Display normal month entries
-	            logWriter.printf("%-14s %14s %,15.2f %,15.2f %,18.2f %,18.2f %,15.2f %,15.2f %,18.2f%n", 
-	                    (month >= 4) ? year+"-"+(year+1) : (year-1)+"-"+year,
-	                    monthName,
-	                    monthlyPay.getBasic(), 
-	                    monthlyPay.getDa(), 
-	                    openingBalance,
-	                    netMonthlyContribution, 
-	                    monthlyInterest, 
-	                    accruedInterest, 
-	                    balance);
+	        double interest = balance * monthlyInterestRate;
+	        balance += interest;
+
+	        if (!isLastMonth) {
+	            balance += netMonthlyContribution;
 	        }
-	        
+
+	        // Format the financial year correctly
+	        String displayYear = (month >= 4) ? String.valueOf(year) : String.valueOf(year - 1);
+
+	        logWriter.printf("%-14s %14s %,15.2f %,15.2f %,18.2f %,18.2f %,15.2f %,18.2f%n", displayYear+"-"+(Integer.parseInt(displayYear)+1), monthName,
+	                monthlyPay.getBasic(), monthlyPay.getDa(), openingBalance,
+	                (!isLastMonth) ? netMonthlyContribution : 0.0, interest, balance);
+
+	        // Special handling for March (end of fiscal year)
+	        if (isLastMonth) {
+	            openingBalance = balance;
+	            balance += netMonthlyContribution;
+	            logWriter.printf("%-14s %14s %,15.2f %,15.2f %,18.2f %,18.2f %,15.2f %,18.2f%n", displayYear+"-"+(Integer.parseInt(displayYear)+1),
+	                    monthName + "*", monthlyPay.getBasic(), monthlyPay.getDa(), openingBalance,
+	                    netMonthlyContribution, 0.0, balance);
+
+	            // Store the year's total
+	            String financialYear = String.valueOf(year - 1);
+	            yearlyOutflows.put(financialYear, Math.round(balance * 100.0) / 100.0);
+
+	            logWriter.println(
+	                    "--------------------------------------------------------------------------------------------------------------------------------------------------------");
+	            logWriter.printf("%-14s %14s %15s %15s %18s %18s %,15.2f %18s%n", "Financial Year", financialYear+"-"+(Integer.parseInt(financialYear)+1), "",
+	                    "", "", "Total:", yearlyOutflows.get(financialYear), "");
+
+	            logWriter.println(
+	                    "--------------------------------------------------------------------------------------------------------------------------------------------------------");
+	        }
+
 	        // Store December values for each year for projections
 	        if (month == 12) {
 	            lastCalculatedProjections.put(String.valueOf(year), new PayComponents(monthlyPay));
@@ -443,10 +414,6 @@ public class FetchEmployeeServlet extends HttpServlet {
 
 	    return yearlyOutflows;
 	}
-	
-	private static double round(double value) {
-        return Math.round(value * 100.0) / 100.0;
-    }
 	
 	private static double applyPfHikeRules(PayComponents pay, LocalDate date, int incrementMonth,
 			PrintWriter logWriter) {
@@ -505,4 +472,7 @@ public class FetchEmployeeServlet extends HttpServlet {
 
 		return pay.getPfPay();
 	}
+	
+	
+
 }

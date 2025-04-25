@@ -37,9 +37,15 @@ public class CalculatePensionServlet extends HttpServlet {
         request.setAttribute("avgSalary5Yr", avgSalary5Yr);
         request.setAttribute("pension", pension);
         request.setAttribute("netOutflow", netOutflow);
+        
+        String netOutflowWords = new NumberToWordConverter().convert(netOutflow);
+        	
+        request.setAttribute("netOutflowWords", netOutflowWords);
 
         // Forward to result page
         RequestDispatcher dispatcher = request.getRequestDispatcher("result.jsp");
         dispatcher.forward(request, response);
     }
 }
+
+

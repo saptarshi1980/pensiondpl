@@ -24,12 +24,12 @@
 <body>
 	<div class="container-fluid p-3 bg-light">
 		<div class="text-center mb-3">
-			<a href="/pensiondpl/break-even.jsp"
+			<a href="/pensiondpl/index.jsp"
 				class="btn btn-link fs-5 fw-bold text-primary text-decoration-none">
-				Click here for Pension Break-Even Period Calculator </a>
+				Click here for Pension Calculator </a>
 		</div>
 
-	<div class="container col-md-8 mx-auto">  <!-- Increased from col-md-6 to col-md-8 -->
+	<div class="container col-md-8 mx-auto" align="center">  <!-- Increased from col-md-6 to col-md-8 -->
     <h2 class="text-center mb-3 p-2 text-white rounded-3"
         style="background: linear-gradient(135deg, #3a7bd5, #00d2ff); 
                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -39,7 +39,7 @@
                white-space: nowrap; <!-- Prevent line breaks -->
                overflow: hidden;
                text-overflow: ellipsis;">
-        <i class="fas fa-calculator me-2"></i> Pension on Higher Wages and Company's side PF Contribution outflow Calculator
+        <i class="fas fa-calculator me-2" ></i> EPFO Demand Projection till April 2025
     </h2>
 </div>
 
@@ -47,31 +47,16 @@
 			<!-- Disclaimer Box -->
 <div class="disclaimer-box p-3 mb-4 rounded-end">
   <h5 class="fw-bold">Disclaimer:</h5>
-  <h8 class="fw-bold">EPFO may have issued a Demand Notice to you vide which your payable amount has been communicated to you. This amount is calculated till March 2023. Hence, you have to add your PF contribution and interest from April 2023 to April 2025/ till your retirement which ever is earlier. <a href="/pensiondpl/cont23-25.jsp">Click here to calculate this figure</a></h8>
-  <p>This projection calculator is based on many future assumptions like:</p>
+  <p>EPFO issued Demand letter with a specific Value</p>
   <ul class="mb-2">
-    <li>Increment and fixed DA will be given each year</li>
-    <li>7th Pay Commission will be effective from 2026 and implemented in 2030</li>
-    <li>8th Pay Commission will be effective from 2036 and implemented in 2040</li>
-    <li>Promotions/upliftment not considered</li>
+    <li>Although this amount is payable in June 2025 but the amount is calculated till March 2023</li>
+    <li>You have to make a projection of Demand value till 2025 based on your contribution and accumulated interest </li>
   </ul>
 
-  <p class="mb-2">
-    Therefore, the projected Pension and Company side PF outflow 
-    <!-- <span style="font-weight: 900; background-color: #ffffff; color: #150e92; padding: 5px 10px; border-radius: 5px;">
-      (From the current year to till you turn 58 years)
-    </span>  -->
-    amounts are totally approximate in nature based on the formula given by EPFO.
-  </p>
-
-  <!-- <div class="mt-2 p-2 rounded border-start border-4 border-danger text-danger fw-bold">
-    <i class="fas fa-exclamation-circle me-1"></i>
-    EPFO Demand amount from start of your service to current date is not included in this calculation / projection.
-  </div> -->
 </div>
 
 	
-			<form action="FetchEmployeeServlet" method="post"
+			<form action="FetchEmployeeServlet23To251" method="post"
 				class="needs-validation" novalidate>
 				<div class="mb-3">
 					<label for="empId" class="form-label"><strong>Enter Employee ID</strong></label> <input
@@ -80,9 +65,9 @@
 					<div class="invalid-feedback">Please enter a valid Employee
 						ID .</div>
 						
-					<label for="demand_amt" class="form-label"><strong>Enter EPFO Demand Amount as on April 2023 + PF Contribution and Interest from 2023-2025 (<a href="/pensiondpl/cont23-25.jsp">Click here to calculate this figure</a>)</strong></label> 
+					<label for="demand_amt" class="form-label"><strong>Enter EPFO Demand Amount</strong></label> 
 					<input type="text" class="form-control" name="demand_amt" id="demand_amt" required
-						pattern="\d{}" placeholder="Enter EPFO Demand Amount as on April 2023 + Contribution and Interest from 2023-2025 (Enter zero if you dont know this amount but keep in mind that the calculation will not consider EPFO Demand amount in Contribution Projection)">
+						pattern="\d{}" placeholder="Enter EPFO Demand Amount">
 					<div id="wordValue" class="word-value"></div>
 				</div>
 

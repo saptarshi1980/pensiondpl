@@ -197,6 +197,7 @@
   <strong>Estimated PF Contribution Outflow - </strong>
   <span class="highlight-period">Current date to 58 years age (rounded):</span> 
   <span class="pension-amount">₹ <%= String.format("%d", netOutflow) %></span>
+  <span class="pension-amount">(<%= request.getAttribute("netOutflowWords") %>)</span>
 </p>
     
     <p class="disclaimer">

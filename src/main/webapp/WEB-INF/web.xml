@@ -17,4 +17,13 @@
         <servlet-name>CalculatePensionServlet</servlet-name>
         <url-pattern>/CalculatePensionServlet</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>FetchEmployeeServlet23To25</servlet-name>
+        <servlet-class>com.example.FetchEmployeeServlet23To25</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FetchEmployeeServlet23To25</servlet-name>
+        <url-pattern>/FetchEmployeeServlet23To25</url-pattern>
+    </servlet-mapping>
 </web-app>
