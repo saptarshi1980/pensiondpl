@@ -239,7 +239,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Year</th>
-                        <th>Accumulated PF Amount (₹)</th>
+                        <th>Accumulated Company side PF Amount (₹)</th>
                     </tr>
                 </thead>
                 <tbody>

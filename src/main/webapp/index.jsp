@@ -47,7 +47,7 @@
 			<!-- Disclaimer Box -->
 <div class="disclaimer-box p-3 mb-4 rounded-end">
   <h5 class="fw-bold">Disclaimer:</h5>
-  <h8 class="fw-bold">EPFO may have issued a Demand Notice to you vide which your payable amount has been communicated to you. This amount is calculated till March 2023. Hence, you have to add your PF contribution and interest from April 2023 to April 2025/ till your retirement which ever is earlier. <a href="/pensiondpl/cont23-25.jsp">Click here to calculate this figure</a></h8>
+  <h8 class="fw-bold">EPFO may have issued a Demand Notice to you vide which your payable amount has been communicated to you. This amount is calculated till March 2023. Hence, you have to add your PF contribution and interest from April 2023 to April 2025/ till your retirement which ever is earlier. <a target="_blank" href="/pensiondpl/cont23-25.jsp">Click here to calculate this figure</a></h8>
   <p>This projection calculator is based on many future assumptions like:</p>
   <ul class="mb-2">
     <li>Increment and fixed DA will be given each year</li>
@@ -80,7 +80,7 @@
 					<div class="invalid-feedback">Please enter a valid Employee
 						ID .</div>
 						
-					<label for="demand_amt" class="form-label"><strong>Enter EPFO Demand Amount as on April 2023 + PF Contribution and Interest from 2023-2025 (<a href="/pensiondpl/cont23-25.jsp">Click here to calculate this figure</a>)</strong></label> 
+					<label for="demand_amt" class="form-label"><strong>Enter EPFO Demand Amount as on April 2023 + PF Contribution and Interest from 2023-2025 (<a target="_blank" href="/pensiondpl/cont23-25.jsp">Click here to calculate this figure</a>)</strong></label> 
 					<input type="text" class="form-control" name="demand_amt" id="demand_amt" required
 						pattern="\d{}" placeholder="Enter EPFO Demand Amount as on April 2023 + Contribution and Interest from 2023-2025 (Enter zero if you dont know this amount but keep in mind that the calculation will not consider EPFO Demand amount in Contribution Projection)">
 					<div id="wordValue" class="word-value"></div>

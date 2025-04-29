@@ -76,13 +76,21 @@ public class FetchEmployeeServlet extends HttpServlet {
 		try (Connection con = DBUtil.getConnection()) {
 
 			// Fetch employee & salary info
-			String query = "SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, "
-					+ "TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58 * 12)), 'dd-mm-yyyy') AS retirement_month_end, "
-					+ "p.pf_pay, p.join_date, "
-					+ "TO_DATE('31-08-2014', 'dd-mm-yyyy') - TO_DATE(p.join_date, 'dd-mm-yyyy') AS service_days "
-					+ "FROM app_vw_emp e JOIN vw_dcpy_dpl_payslip p ON e.emp_id = p.ngs "
-					+ "WHERE p.ngs = ? AND p.sal_month = 8 AND p.sal_year = 2014";
-
+			/*
+			 * String query =
+			 * "SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, " +
+			 * "TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58 * 12)), 'dd-mm-yyyy') AS retirement_month_end, "
+			 * + "p.pf_pay, p.join_date, " +
+			 * "TO_DATE('31-08-2014', 'dd-mm-yyyy') - TO_DATE(p.join_date, 'dd-mm-yyyy') AS service_days "
+			 * + "FROM app_vw_emp e JOIN vw_dcpy_dpl_payslip p ON e.emp_id = p.ngs " +
+			 * "WHERE p.ngs = ? AND p.sal_month = 8 AND p.sal_year = 2014";
+			 */
+			
+			//String query ="SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58 * 12)), 'dd-mm-yyyy') AS retirement_month_end, p.pf_pay, p.join_date, TO_DATE('31-08-2014', 'dd-mm-yyyy') - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy')) AS service_days FROM app_vw_emp e JOIN vw_dcpy_dpl_payslip p ON e.emp_id = p.ngs WHERE p.ngs = ? AND p.sal_month = 8 AND p.sal_year = 2014";
+			
+			String query = "SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58 * 12)), 'dd-mm-yyyy') AS retirement_month_end, p.pf_pay, p.join_date, TO_DATE('31-08-2014', 'dd-mm-yyyy') - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy')) AS service_days, substr(c.nextincr,1,2) as incr_month FROM app_vw_emp e JOIN vw_dcpy_dpl_payslip p ON e.emp_id = p.ngs JOIN vw_dcpyint_paybill c ON p.ngs = c.ngs WHERE p.ngs = ? AND p.sal_month = 8 AND p.sal_year = 2014";
+			System.out.println("Query-"+query);
+			
 			try (PreparedStatement ps = con.prepareStatement(query)) {
 				ps.setString(1, empId);
 				try (ResultSet rs = ps.executeQuery()) {
@@ -93,13 +101,16 @@ public class FetchEmployeeServlet extends HttpServlet {
 						pfPay = rs.getDouble("pf_pay");
 						joinDate = rs.getString("join_date");
 						serviceDays = rs.getInt("service_days");
+						incrementMonth= rs.getInt("incr_month");
+						System.out.println("Increment moth-"+incrementMonth);
 
-						if (joinDate != null && !joinDate.isEmpty()) {
-							LocalDate joinLocalDate = LocalDate.parse(joinDate,
-									DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-							incrementMonth = joinLocalDate.getMonthValue();
-							// logWriter.println("Increment month fetched from data: " + incrementMonth);
-						}
+						/*
+						 * if (joinDate != null && !joinDate.isEmpty()) { LocalDate joinLocalDate =
+						 * LocalDate.parse(joinDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+						 * incrementMonth = joinLocalDate.getMonthValue();
+						 * System.out.println("Increment moth-"+incrementMonth); //
+						 * logWriter.println("Increment month fetched from data: " + incrementMonth); }
+						 */
 					}
 					else {
 						request.getRequestDispatcher("index.jsp").forward(request, response);
@@ -455,6 +466,7 @@ public class FetchEmployeeServlet extends HttpServlet {
 		// Apply regular yearly increment based on increment month for all years
 		if (month == incrementMonth) {
 			pay.basic *= 1.03;
+			pay.basic = roundUpToNearest100(pay.basic);
 			logWriter.println("Applying regular 3% increment in " + date.getMonth() + " " + year + " (Basic after: "
 					+ pay.basic + ")");
 		}
@@ -504,5 +516,10 @@ public class FetchEmployeeServlet extends HttpServlet {
 		}
 
 		return pay.getPfPay();
+	}
+	
+	
+	public static double roundUpToNearest100(double amount) {
+	    return (Math.ceil(amount / 100) * 100);
 	}
 }
