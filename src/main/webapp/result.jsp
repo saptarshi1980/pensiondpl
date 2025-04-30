@@ -6,6 +6,7 @@
     LocalDate exitDate = (LocalDate) request.getAttribute("exitDate");
     String formattedExitDate = exitDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
     double serviceDays = (double) request.getAttribute("serviceDays");
+    double totalServiceDays = (double) request.getAttribute("totalServiceDays");
     double highestSalaryTill2014 = (double) request.getAttribute("highestSalaryTill2014");
     double avgSalary5Yr = (double) request.getAttribute("avgSalary5Yr");
     double pensionAmount = (double) request.getAttribute("pension");
@@ -129,7 +130,7 @@
     <h3>Employee Information</h3>
     <p><strong>Employee ID:</strong> <%= request.getAttribute("empId") %></p>
     <p><strong>Employee Name:</strong> <%= request.getAttribute("empName") %></p>
-    <p><strong>Pensionable Service days (till 31-08-2014) + 2 Additional years :</strong> <%= (int)serviceDays-730 %> days + (2 x 365) days = <%= (int)serviceDays %> days </p>
+    <p><strong>Pensionable Service days (till 31-08-2014) + 2 Additional years if total service length more than 20 years :</strong> <%= (int)serviceDays %> days </p>
     <p><strong>Highest Salary Till 31-08-2014:</strong> ₹ <%= String.format("%,.2f", highestSalaryTill2014) %></p>
     <p><strong>Average Salary for Last 60 months:</strong> ₹ <%= String.format("%,.2f", avgSalary5Yr) %></p>
     <p><strong>Retirement Date:</strong> <%= formattedExitDate %></p>
@@ -139,7 +140,7 @@
         <div class="formula-container">
             <div class="formula-title">Pension Formula:</div>
             <div class="formula">
-[(Service Days with 2 additional years × Highest PF Pay Till August 2014) + 
+[(Service Days with 2 additional years (if total service length more than 20 years) × Highest PF Pay Till August 2014) + 
 (Days After August 2014 × Average monthly PF Pay of last 60 months till you turn 58 years )] 
 / (70 × 365)
             </div>
@@ -152,8 +153,8 @@
                 <th>Value</th>
             </tr>
             <tr>
-                <td>Service Days (with 2 additional years)</td>
-                <td><%= (int)serviceDays-730 %> days + 730 days</td>
+                <td>Service Days</td>
+                <td><%= (int)serviceDays %> days</td>
                 <td><%= (int)serviceDays %> days</td>
             </tr>
             

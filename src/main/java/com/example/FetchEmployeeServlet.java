@@ -9,9 +9,12 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.*;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.Date;
 
 public class FetchEmployeeServlet extends HttpServlet {
 
@@ -68,7 +71,7 @@ public class FetchEmployeeServlet extends HttpServlet {
 
 		String empName = null, dob = null, retirementMonthEnd = null, joinDate = null;
 		double pfPay = 0, projectedAvgPf = 0, totalOutflow = 0;
-		int serviceDays = 0, incrementMonth = 1;
+		int serviceDays = 0, incrementMonth = 1,total_service_days=0;
 		PayComponents payComponents = new PayComponents(0, 0);
 		Map<String, PayComponents> yearlyProjections = new LinkedHashMap<>();
 		Map<String, Double> yearlyOutflow = new LinkedHashMap<>();
@@ -88,21 +91,24 @@ public class FetchEmployeeServlet extends HttpServlet {
 			
 			//String query ="SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58 * 12)), 'dd-mm-yyyy') AS retirement_month_end, p.pf_pay, p.join_date, TO_DATE('31-08-2014', 'dd-mm-yyyy') - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy')) AS service_days FROM app_vw_emp e JOIN vw_dcpy_dpl_payslip p ON e.emp_id = p.ngs WHERE p.ngs = ? AND p.sal_month = 8 AND p.sal_year = 2014";
 			
-			String query = "SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58 * 12)), 'dd-mm-yyyy') AS retirement_month_end, p.pf_pay, p.join_date, TO_DATE('31-08-2014', 'dd-mm-yyyy') - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy')) AS service_days, substr(c.nextincr,1,2) as incr_month FROM app_vw_emp e JOIN vw_dcpy_dpl_payslip p ON e.emp_id = p.ngs JOIN vw_dcpyint_paybill c ON p.ngs = c.ngs WHERE p.ngs = ? AND p.sal_month = 8 AND p.sal_year = 2014";
-			System.out.println("Query-"+query);
+			String query = "SELECT e.emp_name, TO_CHAR(e.birth_date, 'dd-mm-yyyy') AS dob, TO_CHAR(LAST_DAY(ADD_MONTHS(e.birth_date, 58*12)), 'dd-mm-yyyy') AS retirement_date, p.pf_pay, p.join_date, (TO_DATE('31-08-2014', 'dd-mm-yyyy') - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy'))) AS days_until_2014, (LAST_DAY(ADD_MONTHS(e.birth_date, 58*12)) - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy'))) AS total_days_until_retirement, CASE WHEN (LAST_DAY(ADD_MONTHS(e.birth_date, 58*12)) - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy')))/365 > 20 THEN (LAST_DAY(ADD_MONTHS(e.birth_date, 58*12)) - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy')))/365 + 2 ELSE (LAST_DAY(ADD_MONTHS(e.birth_date, 58*12)) - GREATEST(TO_DATE(p.join_date, 'dd-mm-yyyy'), TO_DATE('01-09-1995', 'dd-mm-yyyy')))/365 END AS epfo_pensionable_years, SUBSTR(c.nextincr,1,2) AS incr_month FROM (SELECT DISTINCT emp_id, emp_name, birth_date FROM app_vw_emp WHERE emp_id = ?) e JOIN (SELECT DISTINCT ngs, pf_pay, join_date FROM vw_dcpy_dpl_payslip WHERE ngs = ? AND sal_month = 8 AND sal_year = 2014) p ON e.emp_id = p.ngs JOIN (SELECT DISTINCT ngs, nextincr FROM vw_dcpyint_paybill WHERE ngs = ? AND sal_month = 8 AND sal_year = 2014) c ON p.ngs = c.ngs";
+			//System.out.println("Query-"+query);
 			
 			try (PreparedStatement ps = con.prepareStatement(query)) {
 				ps.setString(1, empId);
+				ps.setString(2, empId);
+			    ps.setString(3, empId);
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
 						empName = rs.getString("emp_name");
 						dob = rs.getString("dob");
-						retirementMonthEnd = rs.getString("retirement_month_end");
+						retirementMonthEnd = rs.getString("retirement_date");
 						pfPay = rs.getDouble("pf_pay");
 						joinDate = rs.getString("join_date");
-						serviceDays = rs.getInt("service_days");
+						serviceDays = rs.getInt("days_until_2014");
 						incrementMonth= rs.getInt("incr_month");
-						System.out.println("Increment moth-"+incrementMonth);
+						total_service_days = rs.getInt("total_days_until_retirement");
+						//System.out.println("Increment moth-"+incrementMonth);
 
 						/*
 						 * if (joinDate != null && !joinDate.isEmpty()) { LocalDate joinLocalDate =
@@ -165,8 +171,50 @@ public class FetchEmployeeServlet extends HttpServlet {
 				yearlyProjections = extractYearlyProjections();
 
 				// Calculate projected average PF
-				projectedAvgPf = calculateProjectedAveragePf(currentDate, retirementDate, incrementMonth,
-						new PayComponents(payComponents.basic, payComponents.da), logWriter);
+				
+				String cutoffDateStr = "30-04-2025";
+				
+				SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+		        
+		        try {
+		            Date retirementDatedt = sdf.parse(retirementMonthEnd);
+		            Date cutoffDate = sdf.parse(cutoffDateStr);
+		            
+		            
+		            if (retirementDatedt.before(cutoffDate)) {
+		            	
+		            	projectedAvgPf = calculateAveragePfPay(empId);
+		            	
+		                
+		            } else if (retirementDatedt.after(cutoffDate)) {
+		            	
+		            	
+		            	projectedAvgPf = calculateProjectedAveragePf(currentDate, retirementDate, incrementMonth,
+								new PayComponents(payComponents.basic, payComponents.da), logWriter);
+		            } else {
+		                projectedAvgPf = calculateAveragePfPay(empId);
+		            }
+		        } catch (ParseException e) {
+		            System.err.println("Invalid date format: " + e.getMessage());
+		        }
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 
 				totalOutflow = yearlyOutflow.values().stream().mapToDouble(Double::doubleValue).sum();
 				System.out.println("Total outlfow:"+totalOutflow);
@@ -200,6 +248,7 @@ public class FetchEmployeeServlet extends HttpServlet {
 			request.setAttribute("pfPay", pfPay);
 			request.setAttribute("joinDate", joinDate);
 			request.setAttribute("serviceDays", serviceDays);
+			request.setAttribute("totalServiceDays", total_service_days);
 			request.setAttribute("latestPfPay", payComponents.getPfPay());
 			request.setAttribute("projectedAvgPf", projectedAvgPf);
 			request.setAttribute("yearlyProjections", yearlyProjections);
@@ -227,6 +276,8 @@ public class FetchEmployeeServlet extends HttpServlet {
 
 		// Create a new copy to avoid modifying the original
 		PayComponents currentPay = new PayComponents(initialPay);
+		System.out.println("curr pay basic from projection"+currentPay.basic);
+		System.out.println("curr pay basic from projection"+currentPay.da);
 
 		while (!datePointer.isAfter(retirementDate)) {
 			// Apply the rules for this month
@@ -522,4 +573,54 @@ public class FetchEmployeeServlet extends HttpServlet {
 	public static double roundUpToNearest100(double amount) {
 	    return (Math.ceil(amount / 100) * 100);
 	}
+	
+	public double calculateAveragePfPay(String employeeId) {
+        String sql = "SELECT AVG(pf_pay) AS avg_pf_pay_last_60_months " +
+                     "FROM vw_dcpy_dpl_payslip " +
+                     "WHERE ngs = ? " +
+                     "AND TO_DATE('01-'||sal_month||'-'||sal_year, 'dd-mm-yyyy') BETWEEN " +
+                     "    ADD_MONTHS( " +
+                     "        LEAST( " +
+                     "            LAST_DAY(ADD_MONTHS( " +
+                     "                (SELECT birth_date FROM app_vw_emp WHERE emp_id = ?), " +
+                     "                58*12 " +
+                     "            )), " +
+                     "            TO_DATE('30-04-2025', 'dd-mm-yyyy') " +
+                     "        ), " +
+                     "        -60 " +
+                     "    ) " +
+                     "    AND " +
+                     "    LEAST( " +
+                     "        LAST_DAY(ADD_MONTHS( " +
+                     "            (SELECT birth_date FROM app_vw_emp WHERE emp_id = ?), " +
+                     "            58*12 " +
+                     "        )), " +
+                     "        TO_DATE('30-04-2025', 'dd-mm-yyyy') " +
+                     "    )";
+
+        double averagePfPay = 0.0;
+        
+        try (Connection conn =  DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // Set the employee ID parameter (used 3 times in the query)
+            stmt.setString(1, employeeId);
+            stmt.setString(2, employeeId);
+            stmt.setString(3, employeeId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    averagePfPay = rs.getDouble("avg_pf_pay_last_60_months");
+                }
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Database error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return averagePfPay;
+    }
+
+
 }

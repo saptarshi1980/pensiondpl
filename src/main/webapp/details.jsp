@@ -165,6 +165,7 @@
         <input type="hidden" name="highestSalaryTill2014" value="<%= request.getAttribute("pfPay") %>">
         <input type="hidden" name="retirementMonthEnd" value="<%= request.getAttribute("retirementMonthEnd") %>">
         <input type="hidden" name="netOutflow" value="<%= (long) netOutflow %>">
+        <input type="hidden" name="total_service_days" value="<%= request.getAttribute("totalServiceDays") %>">
 
         <div class="input-title">
             If you think the above projection is incorrect, you can enter your own estimate of the average PF Pay for the last 60 months (up to age 58):

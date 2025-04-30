@@ -8,10 +8,24 @@ public class PensionService {
     public double calculatePension(double pensionableServiceDays, 
                                    double highestSalaryTill2014,
                                    LocalDate exitDate,
-                                   double averageSalaryLast5Years) {
+                                   double averageSalaryLast5Years,double totalServiceDays) {
 
-        double serviceWithAdditionalDays = pensionableServiceDays + (2*365);
-        long serviceDays = (long) (serviceWithAdditionalDays);
+    	
+    	double serviceWithAdditionalDays=0;
+    	
+    	
+        
+    	if(totalServiceDays>(365*20)) {
+    		serviceWithAdditionalDays= pensionableServiceDays + (2*365);
+    		System.out.println("More than 20 years");
+    	}
+    	else {
+    		serviceWithAdditionalDays=pensionableServiceDays;
+    		System.out.println("less than 20 years");
+    	}
+    	
+        
+    	long serviceDays = (long) (serviceWithAdditionalDays);
         double firstPart = serviceDays * highestSalaryTill2014;
 
         LocalDate startDate = LocalDate.of(2014, 9, 1);

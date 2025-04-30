@@ -19,6 +19,7 @@ public class CalculatePensionServlet extends HttpServlet {
         String exitDateStr = request.getParameter("retirementMonthEnd");
         double avgSalary5Yr = Double.parseDouble(request.getParameter("avgSalary"));
         long netOutflow = Long.parseLong(request.getParameter("netOutflow"));
+        double totalServiceDays = Double.parseDouble(request.getParameter("total_service_days"));
 
         // Parse exit date
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -26,8 +27,17 @@ public class CalculatePensionServlet extends HttpServlet {
 
         // Calculate pension
         PensionService pensionService = new PensionService();
-        double pension = pensionService.calculatePension(serviceDays, highestSalaryTill2014, exitDate, avgSalary5Yr);
+        double pension = pensionService.calculatePension(serviceDays, highestSalaryTill2014, exitDate, avgSalary5Yr,totalServiceDays);
 
+        if(totalServiceDays>(365*20)) {
+    		serviceDays= serviceDays + (2*365);
+    		System.out.println("More than 20 years");
+    	}
+    	else {
+    		serviceDays=serviceDays;
+    		System.out.println("less than 20 years");
+    	}
+        
         // Set attributes for JSP
         request.setAttribute("empId", empId);
         request.setAttribute("empName", empName);
@@ -37,6 +47,8 @@ public class CalculatePensionServlet extends HttpServlet {
         request.setAttribute("avgSalary5Yr", avgSalary5Yr);
         request.setAttribute("pension", pension);
         request.setAttribute("netOutflow", netOutflow);
+        request.setAttribute("totalServiceDays", totalServiceDays);
+        
         
         String netOutflowWords = new NumberToWordConverter().convert(netOutflow);
         	
